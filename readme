@@ -1,0 +1,42 @@
+
+Where to start
+~~~~~~~~~~~~~~
+A good place to start is the "doc" directory, where you
+will find "quickstart" and "user" guides for the atmospheric
+dynamical cores.  Additional files in the "doc" directory provide
+links to web-based documentation that accompanies the source code.
+
+NOTE:
+ The quickstart and guide documentation files have not yet been
+ updated to include finite volume dynamics on the cubed-sphere
+ grid. It is planned to correct this omission in a future release.
+ In the meantime, a brief explanation of some of the most basic
+ things one should know before running this model are included in
+ an ascii file named "fv_cubed_sphere" under the doc/ directory.
+
+Summary of directory contents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bin/
+     -- mkmf script for creating Makefiles
+     -- template files for the mkmf script
+     -- assorted other scripts
+
+doc/ 
+     -- quickstart guide
+     -- user's guide
+     -- links to other documentation
+     -- fv_cubed_sphere
+
+exp/
+     -- model input files for each experiment, such as: 
+           namelists, diagnostics tables, field tables
+     -- lists of source code for compiling with mkmf
+     -- runscripts for running the models
+
+postprocessing/
+     -- source code for postprocessing programs
+
+src/   
+     -- source code for all models
+
+

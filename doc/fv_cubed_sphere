@@ -1,0 +1,77 @@
+The namelists can be found in the file: ../exp/atmos_cubed_sphere/namelists
+
+Changing horizontal resolution
+  This is done through the namelist (fv_core_nml)
+  npx and npy specify the number of gridpoints on each face of the cube;
+  the number of gridcells on each face is (npx-1)*(npy-1).
+
+Changing vertical coordinate
+  The number of vertical levels is specified by
+  setting npz in the namelist fv_core_nml;
+  There are npz+1 boundaries between model layers,
+  with the surface being one such boundary.
+  The vertical coordinate is hybrid with a linear
+  transition from pure sigma at the surface to
+  pure pressure at the top level. The spacing is
+  appoximately equal (exactly equal when surface
+  pressure=1000mb) if one sets uniform_vert_spacing=.true.
+
+  There are a number of special vertical coordinates.
+  They are invoked by setting uniform_vert_spacing=.false.
+  and by setting npz to one of several special values.
+  The special coordinates are not documented here, but one
+  can see what the special values of npz are by
+  looking at the code that sets the vertical coordinate.
+  See: ../src/atmos_cubed_sphere/tools/fv_eta.F90
+  Note that the runscript as it comes out-of-the-box DOES
+  use one of these specical vertical coordinates, with npz=26.
+  
+Changing number of processors
+  This is accomplished be setting npes in the runscript.
+  The grid domain layout also has to be changed when processor
+  count changes. This is done via the namelist by setting layout.
+  layout is a two dimensional array specifying the number of
+  partitions in each direction of a single face. Therefore, the
+  number of processors must equal 6*layout(1)*layout(2)
+  There is also a namelist setting named 'io_layout'.
+  In general this can be the same as layout. There are certain
+  high resolution models run on certain platforms where this
+  needs to be changed, but that problem is beyond the scope
+  of this basic documentation.
+
+Initializing the model fields
+  The model can easily be restarted from output of a previous run,
+  thereby continuing the previous run. Restart files are written
+  to $workdir/RESTART. These can be moved from the RESTART directory
+  to the INPUT directory, or they can be saved and copied to the
+  INPUT directory later. If they exist in the INPUT directory the
+  model will read them upon initialization and pick up where it left off.
+
+  When no restart files are present the model "cold starts" by setting
+  the model prognostic fields to one of a number of options.
+  This is done via the namelist by setting test_case in test_case_nml.
+  The options available are listed in code comments.
+  See: ../src/atmos_cubed_sphere/tools/test_cases.F90
+  Since the Held-Suarez benchmark requires the atmosphere's lower
+  boundary to be flat, test_case is set to an option that meets this
+  requirement.
+
+  No simple way of initializing the model with arbitrary initial
+  conditions is provided. This would have to be accomplished by either
+  modifying the code or manipulating restart files from a previous run.
+
+  Initializing a model of one configuration with the restart files of
+  a model with a different configuration may be possible, depending on
+  the configurations. But this should be done only by knowledgeable users.
+
+Changing the forcing
+  The default forcing is according to:
+  Held, Isaac, and M J Suarez, 1994: A proposal for the intercomparison
+  of the dynamical cores of atmospheric general circulation models.
+  Bulletin of the American Meteorological Society, 75(10)
+
+  The parameters of this forcing are currently hard wired into the code.
+  It is planned to put them under namelist control in a future release.
+  For now, they can be changed only by modifying the code. The relevant
+  code file is: ../src/atmos_cubed_sphere/driver/solo/hswf.F90
+  And the relevant routine is Held_Suarez_Tend

@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                         "/home/arl/lib/docbk/dtd/docbookx.dtd"
+>
+<article lang="en">
+
+<articleinfo>
+   <title>FMS Atmospheric Dynamical Cores</title>
+
+   <abstract>
+      <para>
+This document describes the available documentation and reference material for the FMS Atmospheric Dynamical Cores, as originally described in:
+      </para>
+      <para>
+Held, I. M., and M. J. Suarez, 1994: <emphasis role="bold">A proposal for the intercomparison
+of the dynamical cores of atmospheric general circulation models.</emphasis> <emphasis>Bulletin
+of the American Meteorological Society,</emphasis> <emphasis role="bold">75(10)</emphasis>, 1825-1830.
+      </para>
+      <para>
+<ulink url="http://www.gfdl.noaa.gov/reference/bibliography/1994/ih9401.html">Abstract</ulink>  /
+<ulink url="http://www.gfdl.noaa.gov/reference/bibliography/1994/ih9401.pdf">PDF</ulink>
+      </para>
+   </abstract>
+
+   <author>
+      <firstname>Amy</firstname>
+      <surname>Langenhorst</surname>
+      <email>Amy.Langenhorst@noaa.gov</email>
+   </author>
+</articleinfo>
+
+
+<section id="acquire">
+   <title>Available Documentation and Reference Material</title>
+   <para>
+
+<orderedlist>
+   <listitem><para>
+The top level <ulink url="../readme">readme file</ulink> contains a short description of the contents of this package.
+   </para></listitem>
+
+   <listitem><para>
+<ulink url="quickstart.html">Quickstart Guide</ulink>: describes how to acquire, compile, and run the atmospheric
+                                     dynamical core models.
+   </para></listitem>
+
+   <listitem><para>
+<ulink url="guide.html">Users Guide</ulink>: documentation of the release package
+   </para></listitem>
+
+   <listitem><para>
+B-grid Atmospheric Core Documentation
+      <itemizedlist>
+         <listitem><para>
+<ulink url="../src/atmos_bgrid/documentation/bgrid.pdf">Description of finite differencing (pdf)</ulink>
+         </para></listitem>
+
+         <listitem><para>
+<ulink url="../src/atmos_bgrid/documentation/bgrid_supdoc.html">Supplementary documentation</ulink>
+         </para></listitem>
+
+         <listitem><para>
+<ulink url="../exp/bgrid/path_names.html">List of Fortran module documentation for B-grid core</ulink>
+         </para></listitem>
+      </itemizedlist>
+   </para></listitem>
+
+   <listitem><para>
+Spectral Atmospheric Core Documentation
+      <itemizedlist>
+         <listitem><para>
+<ulink url="../src/atmos_spectral/documentation/spectral_core.pdf">Spectral core (pdf)</ulink>
+         </para></listitem>
+         <listitem><para>
+<ulink url="../exp/spectral/path_names.html">List of Fortran module documentation for spectral core</ulink>
+         </para></listitem>
+
+         <listitem><para>
+<ulink url="../src/atmos_spectral_barotropic/barotropic.pdf">Barotropic model (pdf)</ulink>
+         </para></listitem>
+         <listitem><para>
+<ulink url="../exp/spectral_barotropic/path_names.html">List of Fortran module documentation for spectral barotropic model</ulink>
+         </para></listitem>
+
+         <listitem><para>
+<ulink url="../src/atmos_spectral_shallow/shallow.pdf">Shallow water model (pdf)</ulink>
+         </para></listitem>
+         <listitem><para>
+<ulink url="../exp/spectral_shallow/path_names.html">List of Fortran module documentation for spectral shallow model</ulink>
+         </para></listitem>
+      </itemizedlist>
+   </para></listitem>
+
+   <listitem><para>
+Finite Volume Atmospheric Core Documentation
+      <itemizedlist>
+         <listitem><para>
+Lin, S-J., 2004: <emphasis role="bold">A "vertically Lagrangian" finite-volume dynamical core for global models.</emphasis> 
+<emphasis>Monthly Weather Review</emphasis>, <emphasis role="bold">132(10)</emphasis>, 2293-2307.
+      </para>
+      <para>
+<ulink url="http://www.gfdl.noaa.gov/reference/bibliography/2004/sjl0402.html">Abstract</ulink>  /
+<ulink url="http://www.gfdl.noaa.gov/reference/bibliography/2004/sjl0402.pdf">PDF</ulink>
+      </para>
+         </listitem>
+
+         <listitem><para>
+<ulink url="../exp/fv/path_names.html">List of Fortran module documentation for FV core</ulink>
+         </para></listitem>
+
+      </itemizedlist>
+   </para></listitem>
+
+<!--
+   <listitem><para>
+<ulink url="http://www.gfdl.noaa.gov/fms/pubrel/analysis/am2.html">Figures to illustrate the AM2 Model climatology</ulink>
+   </para></listitem>
+-->
+
+</orderedlist>
+
+   </para>
+</section>
+
+</article>

@@ -1,0 +1,4 @@
+"TRACER", "atmos_mod", "sphum"/
+"TRACER", "atmos_mod", "liq_wat"/
+"TRACER", "atmos_mod", "ice_wat"/
+"TRACER", "atmos_mod", "cld_amt"/

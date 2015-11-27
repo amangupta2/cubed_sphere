@@ -1,0 +1,26 @@
+Here is the error message I get when trying to compile the code.  It 
+may be related to netcdf issues.  
+
+Converting pointers to allocatable components
+/home/epg2/models/code/cubed_sphere/exp/atmos_cubed_sphere/../../src/shared/mpp/include/mpp_io_connect.inc(560): error #6404: This name does not have a type, and must have an explicit type.   [NF_NETCDF4]
+              error = NF__CREATE( trim(mpp_file(unit)%name), IOR(NF_NETCDF4,NF_CLASSIC_MODEL), inital, fsize, mpp_file(unit)%ncid )
+-----------------------------------------------------------------^
+/home/epg2/models/code/cubed_sphere/exp/atmos_cubed_sphere/../../src/shared/mpp/include/mpp_io_connect.inc(560): error #6404: This name does not have a type, and must have an explicit type.   [NF_CLASSIC_MODEL]
+              error = NF__CREATE( trim(mpp_file(unit)%name), IOR(NF_NETCDF4,NF_CLASSIC_MODEL), inital, fsize, mpp_file(unit)%ncid )
+----------------------------------------------------------------------------^
+/home/epg2/models/code/cubed_sphere/exp/atmos_cubed_sphere/../../src/shared/mpp/include/mpp_io_connect.inc(560): warning #7319: This argument's data type is incompatible with this intrinsic procedure; procedure assumed EXTERNAL.   [IOR]
+              error = NF__CREATE( trim(mpp_file(unit)%name), IOR(NF_NETCDF4,NF_CLASSIC_MODEL), inital, fsize, mpp_file(unit)%ncid )
+-----------------------------------------------------------------^
+/home/epg2/models/code/cubed_sphere/exp/atmos_cubed_sphere/../../src/shared/mpp/include/mpp_io_connect.inc(560): error #6404: This name does not have a type, and must have an explicit type.   [IOR]
+              error = NF__CREATE( trim(mpp_file(unit)%name), IOR(NF_NETCDF4,NF_CLASSIC_MODEL), inital, fsize, mpp_file(unit)%ncid )
+-------------------------------------------------------------^
+/home/epg2/models/code/cubed_sphere/exp/atmos_cubed_sphere/../../src/shared/mpp/include/mpp_io_util.inc(385): warning #6843: A dummy argument with an explicit INTENT(OUT) declaration is not given an explicit value.   [IOSPEC]
+    subroutine mpp_get_iospec( unit, iospec )
+-------------------------------------^
+compilation aborted for /home/epg2/models/code/cubed_sphere/exp/atmos_cubed_sphere/../../src/shared/mpp/mpp_io.F90 (code 1)
+make: *** [mpp_io.o] Error 1
+if ( 2 != 0 ) then
+echo ERROR: make failed
+ERROR: make failed
+exit 1
+

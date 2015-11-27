@@ -1,0 +1,1835 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+			 "/home/arl/lib/docbk/dtd/docbookx.dtd"
+[
+<!ENTITY release "memphis">
+<!ENTITY Release "Memphis">
+]>
+
+
+<article lang="en">
+
+<articleinfo>
+   <title>User's Guide: FMS Atmospheric Dynamical Cores</title>
+    <author>
+      <firstname>Lori</firstname>
+      <surname>Thompson</surname>
+      <email>Lori.Thompson@noaa.gov</email>
+   </author>
+</articleinfo>
+<literallayout>
+<ulink url="quickstart.html">Quickstart guide: FMS Atmospheric Dynamical Cores
+</ulink>
+</literallayout>
+
+<section id="introduction">
+   <title>Introduction</title>
+    
+<section id="whatIs">
+   <title>What is an atmospheric dynamical core?</title>
+   <para>
+     We divide a global atmospheric model into a "dynamical core" and a set of
+     "physics" modules, the combination of which is sufficient to integrate the
+     state of the atmosphere forward in time for a given time interval. The
+     dynamical core must be able to integrate the basic fluid equations for an
+     inviscid, adiabatic ideal gas over an irregular rotating surface forward
+     in time. Included in the dynamical core is the horizontal and vertical
+     advection, horizontal subgrid scale mixing, and the time differencing.
+   </para>
+   <para>
+     Our operational definition of a global atmospheric dynamical core is a
+     module, or set of modules, which is capable of integrating a particular
+     benchmark calculation defined by
+     Held and Suarez (1994)<footnote><para>Held, I. M., and M. J. Suarez, 1994: 
+     <emphasis role="bold">A proposal for the intercomparison
+     of the dynamical cores of atmospheric general circulation models.</emphasis> <emphasis>Bull.
+     of the Am. Meteor. Soc.,</emphasis> 75(10), 1825--1830.
+     <ulink url="http://www.gfdl.noaa.gov/~gth/netscape/1994/ih9401.pdf">Download PDF</ulink>
+     </para></footnote> 
+     so as to obtain a statistically steady
+     "climate". Model physics is replaced by very simple linear relaxation of
+     temperature to a specified spatial structure and the winds near the
+     surface are relaxed to zero. Because the resulting flow is turbulent and
+     cascades variance to small horizontal scales, either explicit or implicit
+     horizontal mixing is required to obtain a solution, and, as stated above,
+     is considered to be part of the dynamical core. 
+   </para>
+</section>
+
+<section id="availableCores">
+   <title>The available cores</title>
+
+<section id="finiteDifference">
+   <title>Finite difference core (B-grid core)</title>
+   <para>
+     The global, hydrostatic finite difference dynamical core, also called the
+     B-grid core, was developed from models described in Mesinger, et al.
+     (1988) <footnote><para>Mesinger, F., Z. I. Janjic, S. Nickovic, D.
+     Gavrilov and D. G. Deaven, 1988: <emphasis role="bold">The step-mountain coordinate: Model
+     description and performance for cases of Alpine lee cyclogenesis and for a
+     case of an Appalachian redevelopment.</emphasis> <emphasis>Mon. Wea. Rev.</emphasis>,
+     116, 1493--1518.</para></footnote> and Wyman (1996) <footnote><para>Wyman,
+     B. L., 1996: <emphasis role="bold">A step-mountain coordinate general circulation model:
+     Description and validation of medium-range forecasts.</emphasis> <emphasis>Mon. Wea.
+     Rev.</emphasis>, 124, 102--121.</para></footnote>. The horizontal grid is
+	  the Arakawa B-grid and a hybrid sigma/pressure vertical coordinate is
+     used. The step-mountain (eta coordinate) option is no longer supported. 
+   </para>
+</section>
+
+<section id="spectralCore">
+   <title>Spectral core</title>
+   <para>
+     The spectral dynamical core is a "plain vanilla" version of the classic
+     Eulerian spectral model, with a spherical harmonic basis, for integrating
+     the primitive equations on the sphere. The option of advecting tracers
+     with a finite-volume grid point scheme is also available. Barotropic
+     (2D non-divergent) and shallow water spherical models are also provided.
+   </para>
+</section>
+
+<section id="finiteVolume">
+   <title>Finite-volume core</title>
+   <para>
+The finite-volume (FV) core is described in Lin 2004.<footnote><para>
+Lin, S-J., 2004: <emphasis role="bold">A "vertically Lagrangian" finite-volume dynamical core for global models.</emphasis>
+<emphasis>Mon. Wea. Rev.</emphasis>, 132(10), 2293--2307.
+<ulink url="http://www.gfdl.noaa.gov/reference/bibliography/2004/sjl0402.pdf">Download PDF</ulink>
+   </para>
+</footnote>
+ The horizontal 
+grid is currently based on the regular latitude-longitude grid. The 
+vertical coordinate internal to the FV core is fully Lagrangian with 
+remapping to a Euler coordinate as used in the physical parameterizations.     
+   </para>
+</section>
+
+</section>
+
+<section id="support">
+   <title>Support, feedback, user contributions</title>
+   <para>
+     We will try our best to respond to your support requests and bug reports
+     quickly, given the limits of our human resources devoted to this project.
+     Please use the mailing lists
+     (<email>oar.gfdl.fms@gfdl.noaa.gov</email> and
+     <email>oar.gfdl.fms-atmos@gfdl.noaa.gov</email>) as the forum
+     for support requests: browse the mailing lists for answers to your
+     questions, and post new questions directly to the mailing list. We would
+     also appreciate it if you could answer other users' questions, especially
+     those related to site and platform configuration issues that you may have
+     encountered. We will provide very limited support for platforms not listed
+     in <xref linkend="portability">portability</xref>, and for
+     modifications that you make to the released code.
+   </para>
+</section>
+
+<section id="portability">
+   <title>Portability</title>
+   <para> 
+     Our commitment at any given time is only on those platforms
+     where we have adequate access for our own thorough testing. We will add
+     supported platforms as we can.
+   </para>
+   <para>
+     The platforms we support at present are the following:
+<programlisting>
+     1) SGI
+        Chipset: MIPS
+        OS: Irix 6.5
+        Compiler: MIPSPro version 7.3.1.2 or higher
+        Libraries: Message Passing Toolkit (MPT) version 1.5.1.0 or higher.
+	           netCDF version 3.4 or higher (64-bit version)
+
+     2) Linux
+        Chipset: AMD
+        OS: GNU/Linux
+        Compiler: Intel Fortran Compiler Version 9.0-027 
+        Libraries: MPI-1 (e.g MPICH-1.2.5)
+	           netCDF version 3.4 or higher (64-bit version)
+</programlisting>
+   </para>
+</section>
+
+<section id="license">
+   <title>FMS Licensing</title>
+   <para> 
+     The Flexible Modeling System
+     (<ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink>) is free software;
+     you can redistribute it and/or modify it and are expected to follow the
+     terms of the GNU General Public License as published by the Free Software
+     Foundation; either version 2 of the License, or (at your option) any later
+     version.
+   </para>
+   <para>
+     FMS is distributed in the hope that it will be useful, but
+     <emphasis>WITHOUT ANY WARRANTY</emphasis>; without even the implied
+     warranty of <emphasis>MERCHANTABILITY</emphasis> or <emphasis>FITNESS FOR
+     A PARTICULAR PURPOSE</emphasis>. See the GNU General Public License for
+     more details.
+   </para>
+   <para>
+     You should have received a copy of the GNU General Public License along
+     with this release; if not, write to:
+     <literallayout>  
+      Free Software Foundation, Inc.
+      59 Temple Place, Suite 330
+      Boston, MA  02111-1307
+      USA
+      or see: <ulink url="http://www.gnu.org/licenses/gpl.html"/>
+     </literallayout>
+   </para>
+</section>
+</section>
+
+<section id="codeDetails">
+   <title>Details of the code</title>
+
+<section id="documentation">
+   <title>Where to find documentation?</title>
+   <para>
+     In addition to this web page, additional documentation for the atmospheric
+     dynamical cores may be found in these documents:
+     <itemizedlist>
+       <listitem>Technical descriptions of the available cores (PDF files)
+       <para>
+         <itemizedlist>
+           <listitem><ulink url="../src/atmos_bgrid/documentation/bgrid.pdf">Finite differencing used by the B-grid dynamical core</ulink></listitem>
+           <listitem><ulink url="../src/atmos_spectral/documentation/spectral_core.pdf">Spectral dynamical core</ulink></listitem>
+           <listitem><ulink url="../src/atmos_spectral_barotropic/barotropic.pdf">Spectral barotropic version</ulink></listitem>
+           <listitem><ulink url="../src/atmos_spectral_shallow/shallow.pdf">Spectral shallow water version</ulink></listitem>
+         </itemizedlist>
+       </para>
+       </listitem>
+       <listitem>HTML documentation files
+       <para>
+          <itemizedlist>
+           <listitem><ulink url="quickstart.html">Quickstart guide</ulink></listitem>
+           <listitem><ulink url="index.html">Index of atmospheric dynamical core documentation</ulink></listitem>
+           <listitem><ulink url="../src/atmos_bgrid/documentation/bgrid_supdoc.html">B-grid dynamical core supplementary documentation</ulink></listitem>
+         </itemizedlist>
+       </para>
+       </listitem>
+     </itemizedlist>
+   </para>
+</section>
+
+<section id="overviewFiniteDifference">
+   <title>Overview of the finite difference core</title>
+   <para>
+     Key features of the finite difference dynamical core are:
+   </para>
+
+   <itemizedlist> 
+     <listitem>hydrostatic</listitem>
+     <listitem>latitude-longitude grid with Arakawa B-grid staggering</listitem>     <listitem>hybrid sigma-pressure vertical grid</listitem>
+     <listitem>prognostic variables are the zonal and meridional wind
+               components, surface pressure, temperature, and an arbitrary
+               number of tracers</listitem>
+     <listitem>two-level time differencing scheme
+       <para>
+       <itemizedlist>
+         <listitem>gravity waves are integrated using the forward-backward
+                   scheme</listitem>
+         <listitem>split time differencing is used for longer advective and
+                   physics time steps</listitem>
+       </itemizedlist>
+       </para>
+    </listitem>
+    <listitem>pressure gradient options:
+       <para>
+       <itemizedlist>
+         <listitem>Simmons and Burridge (1981) <footnote><para>Simmons, A. J.
+                   and D. M. Burridge, 1981: <emphasis role="bold">An energy and angular-momentum
+                   conserving vertical finite-difference scheme and hybrid
+                   vertical coordinates.</emphasis> <emphasis>Mon. Wea. Rev.</emphasis>, 
+                   109, 758--766.</para></footnote> energy, angular momentum
+                   conserving scheme (default)</listitem>
+         <listitem>Lin (1997) <footnote id="lin97"><para>Lin, S.-J., 1997: <emphasis role="bold">A finite-volume
+                   integration method for computing pressure gradient force in
+                   general vertical coordinates.</emphasis> <emphasis>Quart. J. Roy.
+                   Meteor. Soc.</emphasis>, 123, 1749--1762.</para></footnote>
+		finite-volume method</listitem>
+       </itemizedlist>
+       </para>
+    </listitem>
+    <listitem>default advection option uses centered spatial differencing
+        <para>
+        <itemizedlist>
+             <listitem>modified Euler backward time differencing for stability
+                       </listitem>
+             <listitem>second and fourth-order options</listitem>
+        </itemizedlist>
+        </para>
+    </listitem>
+    <listitem>vertical advection option for piecewise linear (van Leer) or
+              parabolic (PPM) finite volume schemes</listitem>
+    <listitem>grid point noise and the two-grid-interval computational mode of
+              the B-grid are controlled with linear horizontal
+              damping</listitem>
+    <listitem>Fourier filtering in high latitudes of the shortest resolvable
+              waves so that a longer time step can be taken (filter is applied
+              to the mass divergence, horizontal omega-alpha term, horizontal
+              advective tendencies, and the momentum components)</listitem>
+    <listitem>optional sponge at top model level to reduce the reflection of
+              waves</listitem>
+    <listitem>optional divergence damping, with options for second or
+              fourth-order (much less dissipative)</listitem>
+    <listitem>energy conservation guaranteed for long climate runs with a
+              global energy correction to temperature</listitem>
+   </itemizedlist>
+   <para>
+     General features are:
+   </para>
+   <itemizedlist>
+    <listitem>written using Fortran 90</listitem>
+    <listitem>meets the code standards of the
+              <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink></listitem>
+    <listitem>two-dimensional domain decomposition on the longitude/latitude
+              axes</listitem>
+    <listitem>array storage by longitude (fastest varying), latitude, level,
+              and tracer number; using indexing (i,j,k,n)</listitem>
+   </itemizedlist>
+</section>
+
+<section id="overviewSpectral">
+   <title>Overview of the spectral core</title>
+   <para>
+     Key features of the spectral dynamical core are:
+   </para>
+
+   <itemizedlist>
+     <listitem>standard spherical harmonic dynamical core for integrating
+               hydrostatic equations for an ideal gas over the sphere.
+               Prognostic variables are vorticity and divergence of horizontal
+               flow, temperature, logarithm of surface pressure, and an
+               arbitrary number of tracers (See Durran, Numerical Methods for
+               Wave Equations in Geophysical Fluid Dynamics, Springer Verlag,
+               1999)</listitem>
+     <listitem>shallow water and non-divergent barotropic models are also
+               provided with pedagogical examples to help introduce users to
+               this spectral framework</listitem>
+     <listitem>standard semi-implicit time differencing for gravity waves
+               </listitem>
+     <listitem>vertical coordinate surfaces are defined, as in B-grid core, by
+               the set of coefficients (A_k, B_k) where the pressure on the
+               interfaces between layers is
+               <command>p_k = A_k + B_k p_s</command>. By choosing these
+               coefficients appropriately, one can transition from pure "sigma"
+               coordinate (<command>A = 0</command>) near the surface to
+               pressure coordinates aloft</listitem>
+     <listitem>vertical differencing follows Simmons and Burridge (1981)
+               </listitem>
+     <listitem>vertical advection module for tracers shared with B-grid core
+               </listitem>
+     <listitem>horizontal tracer advection can be performed with standard
+               spectral advection algorithm or with a finite volume scheme. The
+               latter is currently limited to piecewise linear Van Leer, as
+               implemented on the sphere by Lin and Rood (1996).<footnote id="lin96">
+               <para>Lin, S.-J. and R.B. Rood, 1996: <emphasis role="bold">Multidimensional
+               flux-form semi-Lagrangian transport schemes.</emphasis> <emphasis>Quart. J.
+               Roy. Meteor. Soc.</emphasis>, 123, 1749--1762.</para></footnote>
+               A piecewise parabolic scheme will be available shortly, sharing
+               code with the grid core. Mass of tracer is not conserved exactly
+               with either spectral or finite volume scheme in this context,
+               but <ulink url="#performance">performance</ulink> in full
+               physics atmospheric model is encouraging</listitem>
+     <listitem>damping is Laplacian of vorticity, divergence, temperature,
+               tracer raised to the n'th power; damping not needed for tracers
+               when using finite volume advection</listitem>
+     <listitem>sector option ( m-fold symmetry in longitude) also available for
+               dynamical studies</listitem>
+   </itemizedlist>
+</section>
+
+<section id="overviewFV">
+   <title>Overview of the finite-volume core</title>
+   <para>
+     Key features of the finite-volume dynamical core are:
+   </para>
+
+   <itemizedlist>
+     <listitem>Hydrostatic </listitem>
+     <listitem>Latitude-longitude grid with a staggered two-grid system (C and D; see Lin and Rood 1997
+        <footnote><para>Lin, S.-J. and R.B. Rood, 1997: <emphasis role="bold">An Explicit Flux-Form Semi-Lagrangian Shallow-Water Model on the Sphere,</emphasis> <emphasis>Quart. J. Roy. Meteor. Soc.</emphasis>, 123(544), 2477--2498.</para></footnote>).
+     </listitem>
+     <listitem>Lagrangian control-volume vertical coordinate with a mass, momentum, 
+and total energy conserving remapping to a Eulerian coordinate (e.g, the 
+hybrid sigma-pressure used in the AM2 Model). </listitem>
+     <listitem>Multiple levels of time splitting within the FV core, with the remapping 
+time step the same as the physics time step. The tracer time step is 
+normally the same as the remapping except when the meridional CFL 
+condition is violated. </listitem>
+   </itemizedlist>
+</section>
+
+<section id="dycoreInterface">
+   <title>The dynamical core interface</title>
+   <para>
+     We do not specify the precise interface expected of a dynamical core.
+     Within <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> we do
+     specify the precise interface for the atmospheric model as a whole, so as
+     to allow it to communicate with land, ocean, and ice models. Atmospheric 
+     models are generally constructed for each core individually from the
+     dynamical core and individual physics modules. Sets of physics modules are
+     bundled into physics packages that can be used to more easily compare
+     models with the same physics and different cores (the Held-Suarez forcing
+     is the simplest example of such a package) but we also recognize that
+     different cores may require the physics to be called in distinct ways.
+   </para>
+   <para>
+     The B-grid and spectral dynamical cores share high-level superstructure
+     code and low-level FMS infrastructure codes. The dynamical core is
+     sandwiched between these levels. For the simple test cases provided with
+     this release the superstructure only consists of a main program, but in
+     more realistic models, drivers for component models and coupling software
+     may also be considered part of the superstructure. The
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> infrastructure
+     codes, which include many commonly-used utilities, are used by both the
+     dynamical core and the superstructure code. The following figure depicts
+     this hierarchy of model codes.
+   </para>
+   <inlinemediaobject>
+     <imageobject>
+       <imagedata fileref="http://www.gfdl.noaa.gov/~lat/webpages/images/interface.jpg"/>
+     </imageobject>
+     <textobject>
+       <phrase>Hierarchical picture of model codes</phrase>
+     </textobject>
+   </inlinemediaobject>
+   <para>
+     The dynamical cores have the same user interface at the atmospheric driver
+     level. Atmospheric drivers are constructed for each core for specific
+     types of models. The drivers included with this public release are for
+     running in a dynamical core only mode using simple forcing from a shared
+     module (the Held-Suarez GCM benchmark model). Other drivers exist for
+     running coupled models using full atmospheric physics in either AMIP mode
+     or fully coupled to a realistic ocean, ice, and land model.
+   </para>
+   <para>
+     A user selects which dynamical core to use prior to compiling the model. A
+     list of path names to the source code of a specific core and the
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> shared codes is
+     supplied to a compilation script. Refer to
+     <xref linkend="preparingRunscript">section 5</xref> for details on
+     compiling the source code.
+   </para>
+</section>
+     
+<section id="sharedComponents">
+   <title>Shared components</title>
+   <orderedlist>
+      <listitem>FMS infrastructure
+     <variablelist>
+       <varlistentry>
+         <term><ulink url="../src/shared/mpp/mpp.html">parallelization
+               tools</ulink></term>
+         <listitem>Simple routines that provide a uniform interface to
+                   different message-passing libraries, perform domain
+                   decomposition and updates, and parallel I/O on distributed
+                   systems.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/fms/fms.html">I/O and restart file
+               utilities</ulink></term>
+         <listitem>Routines for performing commonly used functions and for
+                   reading and writing restart files in native or
+                   <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                   NetCDF</ulink> format.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/time_manager/time_manager.html">time
+                manager</ulink></term>
+         <listitem>Simple interfaces for managing and manipulating time and
+                   dates.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/time_interp/time_interp.html">time
+                interp</ulink></term>
+         <listitem>Computes weight and dates indices for linearly interpolating between two dates.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/diag_manager/diag_manager.html">
+               diagnostics manager</ulink></term>
+         <listitem>Simple calls for parallel 
+                   <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                   NetCDF</ulink> diagnostics on distributed systems.</listitem>       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/field_manager/field_manager.html">
+               field manager/</ulink>
+               <ulink url="../src/shared/tracer_manager/tracer_manager.html">
+               tracer manager</ulink></term>
+         <listitem>Code to read entries from a
+                   <ulink url="#fieldTable">field table</ulink> and
+                   manage the simple addition of tracers to the 
+                   <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> code.
+                   </listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/fft/fft.html">fast Fourier
+                transform</ulink></term>
+         <listitem>Performs simultaneous FFTs between real grid space and
+                   complex Fourier space.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/topography/topography.html">
+               topography</ulink></term>
+         <listitem>Routines for creating land surface topography and land-water
+                   masks.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/constants/constants.html">constants
+               </ulink></term>
+         <listitem>Sets values of physical constants and pi.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/horiz_interp/horiz_interp.html">
+               horiz_interp</ulink></term>
+         <listitem>Performs spatial interpolation between grids.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/axis_utils/axis_utils.html">
+               axis_utils</ulink></term>
+         <listitem>A set of utilities for manipulating axes and extracting
+                   axis attributes.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/data_override/data_override.html">
+               data_override</ulink></term>
+         <listitem>Utility for spatial and temporal interpolation of data to
+                   the model grid and time.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term>memutils</term>
+         <listitem>Various operations for memory management.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/shared/platform/platform.html">
+               platform</ulink></term>
+         <listitem>Provides public entities whose value may depend on the
+                   operating system and compiler.</listitem>
+       </varlistentry>
+     </variablelist>
+     </listitem>
+     <listitem>Atmospheric shared components
+     <variablelist>
+       <varlistentry>
+         <term><ulink url="../src/atmos_shared/vert_advection/vert_advection.html">vertical advection</ulink></term>
+         <listitem>Computes a tendency due to vertical advection for an
+                   arbitrary quantity.</listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><ulink url="../src/atmos_param/hs_forcing/hs_forcing.html">
+               forcing for Held-Suarez GCM benchmark</ulink></term>
+         <listitem>Routines for computing heating and dissipation for the
+                   Held-Suarez GCM benchmark integration of a dry GCM.</listitem>      </varlistentry>
+       <varlistentry>
+         <term>atmos_nudge</term>
+         <listitem>Routines for nudging of the atmospheric data</listitem>
+       </varlistentry>
+     </variablelist>
+     </listitem>
+     <listitem>FMS superstructure
+       <variablelist>
+       <varlistentry>
+         <term><ulink url="../src/atmos_solo/atmos_model.html">main
+               program</ulink></term>
+         <listitem>For running a stand-alone atmospheric model.</listitem>
+       </varlistentry>
+       </variablelist>
+     </listitem>
+   </orderedlist>
+</section> 
+
+</section>
+
+<section id="acquiringSource">
+   <title>Acquiring source code</title>
+   
+<section id="acquire_code">
+   <title>How to acquire source code</title>
+   <para>
+The Flexible Modeling System development team at GFDL uses a local implementation of GForge to
+serve FMS software, located at <ulink url="http://fms.gfdl.noaa.gov"/>.
+In order to obtain the source code, you must
+<ulink url="https://fms.gfdl.noaa.gov/account/register.php">register</ulink>
+as an FMS user on our software server.
+After submitting the registration form on the software server, you should
+receive an automatically generated confirmation email within a few minutes.
+Clicking on the link in the email confirms the creation of your account.
+   </para>
+   <para>
+After your account has been created, you should
+<ulink url="https://fms.gfdl.noaa.gov/account/login.php">log in</ulink>
+and request access to the FMS Atmospheric Dynamical Cores project.
+Once the FMS project administrator grants you access, you will
+receive a second e-mail notification.  This email requires action on the part of the project administrator
+and thus may take longer to arrive.  The email will contain instructions for obtaining the
+release package, which are described below.
+   </para>
+   <para>
+The download will create a directory called <filename>atm_dycores</filename> in your current
+working directory containing the release package. The <ulink url="../readme">readme</ulink>
+file in the <filename>atm_dycores</filename> directory gives a brief overview of the package's
+directory structure and contents.
+   </para>
+   <para>
+Sample output is also available for download.  See <xref linkend="modelOutput"/> for
+more information on the sample output.
+   </para>
+</section>
+
+<section id="gforge">
+   <title>What is GForge?</title>
+   <para>
+     <ulink url="http://www.gforge.org">GForge</ulink> is an Open Source
+     collaborative software development tool, which allows organization and
+     management of any number of software development projects. It is designed
+     for managing large teams of software engineers and/or engineers scattered
+     among multiple locations. Gforge is available at 
+     <ulink url="http://www.gforge.org"/>. General user documentation can be
+     found at <ulink url="http://gforge.org/docman/?group_id=1"/>. 
+   </para>
+</section>
+
+</section>
+
+<section id="compiling">
+   <title>Compiling the source code</title>
+
+<section id="mkmf">
+   <title>The mkmf utility</title>
+   <para>
+     The sample runscripts use the utility <ulink url="../bin/mkmf.html"><command>mkmf</command></ulink>,
+     provided in the <filename>atm_dycores/bin</filename> directory, to create a makefile,
+     and the <command>make</command> utility to compile the FMS source code.
+
+     A listing of paths to all checked out source code files is
+     included in the <filename>path_names</filename> files, located in each dynamical core directory
+     under the
+     <ulink url="../exp"><filename>atm_dycores/exp/</filename></ulink> directory. The
+     <filename>path_names</filename> file is used by
+     the makefile utility <command>mkmf</command> to create a makefile.
+     The <filename>path_names.html</filename> files included in the 
+     <ulink url="../exp"><filename>atm_dycores/exp/$dycore</filename></ulink> directory are
+     created for the user's convenience and contain links to all the relevant
+     documentation files that have been checked out from the download along with the source code. 
+
+     A makefile is used
+     to determine the source code dependencies and the order in which source
+     code files will be compiled. <command>mkmf</command> ("make-make-file" or
+     "make-m-f") is a tool written in perl5 that will construct a
+     makefile from distributed 
+     source. The result of the <command>mkmf
+     </command> utility is a single executable program. Note that
+     <command>mkmf</command> is called automatically in the sample
+     <ulink url="#runscript">runscripts</ulink>.
+   </para>
+   <para>
+     <ulink url="../bin/mkmf.html"><command>mkmf</command></ulink> has the
+     ability to understand dependencies in f90, such as modules and use, the
+     FORTRAN <option>include</option> statement and the cpp
+     <option>#include</option> statement in any type of source.
+     <command>mkmf</command> also places
+     no restrictions on filenames, module names, etc. The utility supports the
+     concept of overlays, where source is maintained in layers of directories
+     with a defined precedence. In addition,
+     <command>mkmf</command> can keep 
+     track of changes to cpp flags and knows when to recompile the affected
+     source. This refers to files containing <option>#ifdefs</option> that have
+     been changed since the last invocation. 
+   </para>
+   <para>
+     The calling syntax is:
+   </para>
+<programlisting>
+mkmf [-a abspath][-c cppdefs][-d][-f][-m makefile][-p program] [-t template][-v][-x][args]
+   
+     -a abspath     attaches the absolute path to the front of all relative paths to source files
+     -c cppdefs     list of cpp #defines to be passed to the source files
+     -d             debug flag
+     -f             formatting flag
+     -m makefile    name of <ulink url="#creatingMakefile">makefile</ulink> written
+     -p program     final target name
+     -t template    file containing a list of make macros or commands
+     -v             verbosity flag
+     -x             executes the <ulink url="#creatingMakefile">makefile</ulink> immediately
+     args           list of directories and files to be searched for targets and dependencies
+</programlisting>
+   <para>
+     The debug flag is much more verbose than <option>-v</option> and used only
+     if you are modifying <command>mkmf</command> itself. The formatting flag
+     restricts the lines in the <ulink url="#creatingMakefile">makefile
+     </ulink> to 256 characters. Lines exceeding 256 characters use
+     continuation lines. If filenames are omitted for the options
+     <option>[-m makefile]</option> and <option>[-p program]</option>, the
+     defaults
+     <filename>Makefile</filename>
+     and <filename>a.out</filename> are applied. The list of make macro or
+     commands contained in <option>[-t template]</option> are written to the
+     beginning of the makefile. 
+   </para>
+</section> 
+
+<section id="creatingMakefile">
+   <title>Creating the makefile</title>
+   <para>
+     When the <ulink url="../bin/mkmf.html"><command>mkmf</command></ulink>
+     utility is executed, it reads a template file and runs a list of make
+     macros, commands and compilers. The template is a platform-specific file
+     that contains standard compilation flags. Default template files are
+     provided with the <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> source
+     code and are located in the <ulink url="../bin"><filename>atm_dycores/bin</filename></ulink>
+     directory. It is recommended that users set up their own compilation
+     template specific for their platform and compiler. The template file
+     contains the following variables: 
+   </para>
+<programlisting>
+     FC            compiler for FORTRAN files
+     LD            executable for the loader step
+     CPPFLAGS      cpp options that do not change between compilations
+     FFLAGS        flags to the FORTRAN compiler
+     LDFLAGS       flags to the loader step
+     CFLAGS        flags to the C compiler
+</programlisting>
+   <para>
+     For example, the template file for the SGI Intel Fortran Compiler contains: 
+   </para>
+<programlisting>
+     FC = ifort
+     LD = ifort
+     CPPFLAGS = -I/usr/local/include 
+     FFLAGS = $(CPPFLAGS) -fno-alias -stack_temps -safe_cray_ptr -ftz -i_dynamic -assume byterecl -g -O2 -i4 -r8 -nowarn -Wp,-w
+     LDFLAGS = -L/usr/local/lib -lnetcdf -lmpi -lsma
+     CFLAGS = -D__IFC
+</programlisting>
+   <para>
+     An include file is any file with an include file suffix, such as
+     <filename>.H</filename>, <filename>.fh</filename>,
+     <filename>.h</filename>, <filename>.inc</filename>, which is recursively
+     searched for embedded includes. <ulink url="../bin/mkmf.html">
+     <command>mkmf</command></ulink> first attempts to locate the include file
+     in the same directory as the source file. If it is not found there, it
+     looks in the directories listed as arguments, maintaining a left-to-right
+     precedence. The argument list, <option>args</option>, is also treated
+     sequentially from left to right. The default action for non-existent files
+     is to create null files of that name in the current working directory via
+     the UNIX <command>touch</command> command. There should be a single main
+     program source among the arguments to
+     <ulink url="../bin/mkmf.html"><command>mkmf</command></ulink>, since all
+     the object files are linked to a single executable.  
+   </para>
+   <para>
+     The argument <option>cppdefs</option> should contain a comprehensive list
+     of the cpp <option>#defines</option> to be preprocessed. This list is
+     compared against the current "state", which is maintained in the file
+     <filename>.cppdefs</filename> in the current working directory. If there
+     are any changes to this state, <command>mkmf</command> will remove all
+     object files affected by this change so that the subsequent make will
+     recompile those files. The file <filename>.cppdefs</filename> is created
+     if it does not exist. <filename>.cppdefs</filename> also sets the make
+     macro <option>CPPDEFS</option>. If this was set in a template file and
+     also in the <option>-c</option> flag to <command>mkmf</command>, the value
+     in <option>-c</option> takes precedence. Typically, you should set only
+     <option>$CPPFLAGS</option> in the template file and
+     <option>CPPDEFS</option> via <command>mkmf -c</command>.
+   </para>
+   <para>
+     To execute the <ulink url="../bin/mkmf.html"><command>mkmf</command>
+     </ulink> utility, the user must locate the appropriate
+     <filename>path_names</filename> file in the
+     <ulink url="../exp"><filename>atm_dycores/exp/$dycore</filename></ulink> directory.
+     The script
+     <command>list_paths</command>, in the <ulink url="../bin"><filename>atm_dycores/bin</filename></ulink>
+     directory, can be used to create a new <filename>path_names</filename>
+     file containing a list of all source code files in a given directory.
+     The user should set up the compilation template file and execute the
+     <command>mkmf</command> utility.  With the appropriate options illustrated
+     in the sample runscripts, the user can call <command>mkmf</command> from 
+     the compilation directory and cause <command>mkmf</command> to call
+     the <command>make</command> command automatically after the 
+     <filename>Makefile</filename> is generated.
+   </para>
+</section>
+
+<!--
+<section id="exampleCompile">
+   <title>Example: Compiling the source code</title>
+   <para>
+     The following example demonstrates how to create the
+     <ulink url="#creatingMakefile">makefile</ulink> and compile the
+     <filename>fms_atm_dycores</filename> module of the
+     <ulink url="http://www.gfdl.noaa.gov/fms">FMS</ulink> &Release; source code.
+     This step is necessary when executing the
+     <ulink url="#runscript">runscript</ulink>.
+   </para>
+   <orderedlist>
+     <listitem> Locate the appropriate <filename>*_pathnames</filename> file in the <filename>atm_dycores/input directory</filename>.</listitem>
+
+     <listitem> Execute the <command>list_paths</command> script, if needed: <userinput>atm_dycores/bin/list_paths</userinput></listitem>
+
+     <listitem> Set up a compilation template for the platform and compiler. Sample templates are located in <filename>atm_dycores/bin</filename>. </listitem>
+
+     <listitem> Execute the <command>mkmf</command> utility in the directory containing the FMS source code using the appropriate <filename>*_pathnames</filename> file. <command>fms.exe</command> is the executable for this example:
+<programlisting>
+cd atm_dycores
+[path_to_mkmf]/mkmf -p fms.exe -t [path_to_compiler]/template.[ext] -c "-Duse_libMPI" -a "$cwd" spectral_pathnames
+</programlisting>
+</listitem>
+
+     <listitem> Create a compilation directory and copy the <filename>Makefile</filename> there:  
+<programlisting>
+mkdir exec_coupled
+cp Makefile exec_spectral
+</programlisting>
+</listitem>
+
+     <listitem> Compile the code in the compilation directory:
+<programlisting>
+cd exec_spectral
+make
+</programlisting>
+</listitem>
+   </orderedlist>
+
+</section>  
+-->
+
+<section id="compilingWithoutMPI">
+   <title>Compiling without MPI</title>
+   <para>
+     Underlying <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> is a
+     modular parallel computing infrastructure. <acronym>MPI</acronym>
+     (Message-Passing Interface) is a standard library developed for writing
+     message-passing programs for distributed computing across loosely-coupled
+     systems. Incorporated in the
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> source code is
+     <ulink url="../src/shared/mpp/mpp.html"><acronym>MPP</acronym></ulink>
+     (Massively Parallel Processing), which provides a uniform message-passing
+     <acronym>API</acronym> interface to the different message-passing
+     libraries. Together, <acronym>MPI</acronym> and <acronym>MPP</acronym>
+     establish a practical, portable, efficient, and flexible standard for
+     message passing.
+   </para>
+   <para>
+     There are a number of freely available implementations of MPI that run on
+     a variety of platforms. The <acronym>MPICH</acronym> implementation,
+     developed by researchers at Argonne National Lab and Mississippi State
+     University, runs on many different platforms, from networks of
+     workstations to <acronym>MPPs</acronym>. If <acronym>MPICH</acronym> is
+     installed, the user can compile the source code with
+     <acronym>MPI</acronym>. If the user does not have MPICH or the
+     communications library, the
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> source code
+     can be compiled without <acronym>MPI</acronym> in one of two ways. If the 
+     <ulink url="#creatingMakefile">makefile</ulink> is  created external
+     to the <ulink url="#runscript">runscript</ulink>, omit the <option>-c
+     cppdefs</option> flag from the
+     <ulink url="../bin/mkmf.html"><command>mkmf</command></ulink> syntax. To
+     compile the <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> source code
+     without MPI delete <option>-Duse_libMPI</option> from the
+     <literal>cppflags</literal> variable.
+   </para>
+   <para>     
+     When <acronym>MPI</acronym> is not used, the messages from
+     <literal>MPP_lib</literal> may display but the data is being copied by
+     <acronym>MPP</acronym>. Compiling the
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> source code
+     without <acronym>MPI</acronym> has been tested and the results show that
+     1 GB of memory is required for executing the code with and without
+     <acronym>MPI</acronym> on a single PE. 
+   </para>
+</section>
+
+</section>
+
+<section id="preparingRunscript">
+   <title>Preparing the runscript</title>
+
+<section id="runscript">
+   <title>The runscript</title>
+   <para>
+     Simple (csh shell) scripts are provided for running the atmospheric
+     dynamical cores. These runscripts perform the minimum required steps to
+     compile and run the models and are intended as a starting point for the
+     development of more practical run scripts. The scripts for all available
+     dynamical core models are located in each  
+     <ulink url="../exp"><filename>atm_dycores/exp/$dycore</filename></ulink> 
+     directory. 
+   </para>
+   <para>
+     Near the top of the scripts, variables are set to the full path name of
+     the initial condition (optional),
+     <ulink url="#diagTable">diagnostics table</ulink>,
+     <ulink url="#fieldTable">tracer field table</ulink> (optional),
+     compilation directory, and the
+     <ulink url="#mppnccombine"><command>mppnccombine</command></ulink> script.
+     The script proceeds to compile and link the source code, create a working
+     directory, and copy the required input data into the working directory.
+     The <command>mpirun</command> command is then used to run the model. The
+     final step for multi-processor runs, is to combine domain-decomposed
+     diagnostics files into global files.
+   </para>
+   <para>
+     The default the scripts are set to run one or two days on a single
+     processor. The number of processors used is controlled by a variable near
+     the top of the scripts. Users may want to increase the number of
+     processors to decrease the wallclock time needed for a run. The run length
+     (in days) and the atmospheric time step, <varname>dt_atmos</varname>, in
+     seconds is controlled by namelist <varname>&amp;main_nml</varname> which
+     is set directly in the runscripts for convenience.
+   </para>
+   <para> 
+     To compile and link the model codes a template file provides platform 
+     dependent parameters, such as the location of the netCDF library on your
+     system, to a compilation utility called
+     <ulink url="../bin/mkmf.html"><command>mkmf</command></ulink>. Sample
+     template files for various platforms are provided in the
+     <filename>bin</filename> directory. More information on
+     <command>mkmf</command> and compiling the source code can be found in
+     <xref linkend="compiling">Section 4</xref>.
+   </para>
+   <para>
+     The sample scripts compile the model code with the <acronym>MPI</acronym>
+     library and execute using the mpirun command. Refer to
+     <xref linkend="compilingWithoutMPI">Section 4.4</xref> for issues
+     related to the <acronym>MPI</acronym> implementation and for compiling
+     without <acronym>MPI</acronym>. The <command>mpirun</command> command is
+     specific to Silicon Graphics machines, and users may need to change this
+     to run on other platforms.
+   </para>
+   <para> 
+     The following sections will describe some of the steps needed to
+     understand and modify the simple runscripts.
+   </para> 
+</section> 
+
+<section id="diagTable">
+   <title>The diagnostic table</title>
+   <para>
+     The <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink>
+     <ulink url="../src/shared/diag_manager/diag_manager.html">diagnostics
+     manager</ulink> is used to save diagnostic fields to
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     files. Diagnostic output is controlled by specifying file and field names
+     in an ASCII table called <filename>diag_table</filename>. The diagnostic
+     tables supplied with the dynamical cores are found in each 
+     <ulink url="../exp"><filename>atm_dycores/exp/$dycore</filename></ulink> directory
+     in a file called <filename>diag_table</filename>.  The bgrid, spectral, and FV
+     test cases use a standard table for the Held-Suarez benchmark test case. In the
+     <ulink url="#runscript">runscript</ulink>, the user specifies the full
+     path to the appropriate diagnostics table, and it is copied to the file
+     <filename>diag_table</filename> in the directory where the model is run.
+   </para>
+   <para>
+     The diagnostic table consists of comma-separated ASCII values and may be
+     edited by the user. The table is separated into three sections: the global
+     section, file section and field section. The first two lines of the table
+     comprise the global section and contain the experiment title and base
+     date. The base date is the reference time used for the time axis. For the
+     solo dynamical cores the base date is irrelevant and is typically set to
+     all zeroes. The lines in the file section contain the file name, output
+     frequency, output frequency units, file format (currently, only netCDF),
+     time units and long name for the time axis. The last section, the field
+     section, contains the module name, field name, output field name, file
+     name, time sampling for averaging (currently, all time steps), time
+     average (.true. or .false.), other operations which are not implemented
+     presently and the packing value. The packing value defines the precision
+     of the output: 1 for double, 2 for floating, 4 for packed 16-bit integers
+     and 8 for packed 1-byte. Any line that begins with a 
+     "<command>#</command>" is a comment.
+   </para>
+   <para>
+     A sample diagnostic table is displayed below.
+   </para>
+<programlisting>
+"Model results from the Held-Suarez benchmark"
+0 0 0 0 0 0
+#output files
+"atmos_daily",    24, "hours", 1, "days", "time",
+"atmos_average",  -1, "hours", 1, "days", "time",
+#diagnostic field entries.
+ "dynamics",    "ps",             "ps",             "atmos_daily",    "all", .false., "none", 2,
+ "dynamics",    "bk",             "bk",             "atmos_average",  "all", .false., "none", 2,
+ "dynamics",    "pk",             "pk",             "atmos_average",  "all", .false., "none", 2,
+ "dynamics",    "zsurf",          "zsurf",          "atmos_average",  "all", .false., "none", 2,
+ "dynamics",    "ps",             "ps",             "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "ucomp",          "ucomp",          "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "vcomp",          "vcomp",          "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "temp",           "temp",           "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "omega",          "omega",          "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "div",            "div",            "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "vor",            "vor",            "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "tracer1",        "tracer1",        "atmos_average",  "all", .true.,  "none", 2,
+ "dynamics",    "tracer2",        "tracer2",        "atmos_average",  "all", .true.,  "none", 2,
+#"hs_forcing",  "teq",            "teq",            "atmos_average",  "all", .true.,  "none", 2,
+</programlisting>
+</section>
+     
+<section id="fieldTable">
+   <title>The field table</title>
+   <para>
+     The <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink>
+     <ulink url="../src/shared/field_manager/field_manager.html">field</ulink>
+     and <ulink url="../src/shared/tracer_manager/tracer_manager.html">tracer
+     managers</ulink> are used to manager tracers and specify tracer options.
+     All tracers used by the model must be registered in an ASCII table called
+     <filename>field_table</filename>. The field tables supplied with the
+     dynamical cores are found in each <ulink url="../exp"><filename>atm_dycores/exp/$dycore</filename></ulink> directory.
+     There are no field tables provided for the barotropic or shallow-water
+     models. In the <ulink url="#runscript">runscript</ulink>, the user
+     specifies the full path to the appropriate field table, and it is copied
+     to file <filename>field_table</filename>.
+   </para>
+   <para>
+     The field table consists of entries in the following format. The first
+     line of an entry should consist of three quoted strings. The first quoted
+     string will tell the
+     <ulink url="../src/shared/field_manager/field_manager.html">field
+     manager</ulink> what type of field it is. The string
+     "<varname>tracer</varname>" is used to declare a tracer field entry. The
+     second quoted string will tell the
+     <ulink url="../src/shared/field_manager/field_manager.html">field
+     manager</ulink> which model the field is being applied to. The supported
+     types at present are "<option>atmos_mod</option>" for the atmosphere
+     model, "<option>ocean_mod</option>" for the ocean model,
+     "<option>land_mod</option>" for the land model, and,
+     "<option>ice_mod</option>" for the ice model. The third quoted string
+     should be a unique tracer name that the model will recognize.
+   </para>
+   <para>
+     The second and following lines of each entry are called
+     <option>methods</option> in this context. Methods can be developed within
+     any module and these modules can query the
+     <ulink url="../src/shared/field_manager/field_manager.html">field
+     manager</ulink> to find any methods that are supplied in the field table.
+     These lines can consist of two or three quoted strings. The first string
+     will be an identifier that the querying module will ask for. The second
+     string will be a name that the querying module can use to set up values
+     for the module. The third string, if present, can supply parameters to the
+     calling module that can be parsed and used to further modify values. An
+     entry is ended with a backslash (/) as the final character in a row.
+     Comments can be inserted in the field table by having a
+     <command>#</command> as the first character in the line.
+   </para>
+   <para>
+     Here is an example of a field table entry for an idealized tracer called
+     "<literal>gunk</literal>".
+   </para>
+<programlisting>
+       "TRACER",     "atmos_mod",               "gunk"
+       "longname",   "really bad stuff" 
+       "units",      "kg/kg"
+       "advec_vert", "finite_volume_parabolic"
+       "diff_horiz", "linear",                  "coeff=.30" / 
+</programlisting>
+   <para>
+     In this example, we have a simple declaration of a tracer called
+     "<literal>gunk</literal>". Methods that are being applied to this tracer
+     include setting the long name of the tracer to be
+     "<literal>really bad stuff</literal>", the units to
+     "<literal>kg/kg</literal>", declaring the vertical advection method to be
+     "<varname>finite_volume_parabolic</varname>", and the horizontal
+     diffusion method to be "<varname>linear</varname>" with a coefficient of
+     "0.30".
+   </para>
+   <para>
+     A <varname>method</varname> is a way to allow a component module to alter
+     the parameters it needs for various tracers. In essence, this is a way to
+     modify a default value. A namelist can supply default parameters for all
+     tracers and a method, as supplied through the field table, will allow the
+     user to modify the default parameters on an individual tracer basis.
+   </para>
+   <para>
+     The following web-based documentation describes the available
+     <varname>method_types</varname> for the dynamical cores.
+   </para>
+   <itemizedlist>
+     <listitem><ulink url="../src/atmos_bgrid/model/bgrid_advection.html#FIELD_TABLE">B-grid: advection and filling</ulink></listitem>
+     <listitem><ulink url="../src/atmos_bgrid/model/bgrid_horiz_diff.html#FIELD_TABLE">B-grid: horizontal damping</ulink></listitem>
+     <listitem><ulink url="../src/atmos_spectral/model/spectral_dynamics.html#FIELD_TABLE">Spectral: all tracer options</ulink></listitem>
+   </itemizedlist>
+</section>
+
+<section id="namelistOptions">
+   <title>Namelist options</title>
+   <para>
+     Many model options are configurable at runtime using namelist input. All
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> modules read their
+     namelist records from files called <filename>namelists</filename>. A
+     module will read <filename>namelists</filename> sequentially until the
+     first occurrence of its namelist record is found. Only the first namelist
+     record found is used. Most (if not all) namelist variables have default
+     values, so it is not necessary to list all namelist records in the
+     <filename>namelists</filename> file. The runscripts provided set up the
+     file <filename>input.nml</filename> by concatenating the core-specific
+     namelist files. 
+   </para>
+   <itemizedlist>
+
+     <listitem>Summary of namelist records for the B-grid core:
+     <variablelist>
+      <varlistentry>
+        <term>
+          <varname><ulink url="../src/atmos_bgrid/model/bgrid_core_driver.html#NAMELIST">bgrid_core_driver_nml</ulink></varname></term>
+        <listitem>main namelist for the B-grid core. It controls the
+                  following options: time splitting, domain layout, polar
+                  filtering, pressure gradient, divergence damping, energy
+                  conservation, and <ulink url="#ic_restarts">restart
+                  file</ulink> format.</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_bgrid/model/bgrid_advection.html#NAMELIST">bgrid_advection_nml</ulink></varname></term>
+        <listitem>advection scheme and tracer filling options </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_bgrid/model/bgrid_horiz_diff.html#NAMELIST">bgrid_horiz_diff_nml</ulink></varname> </term>
+        <listitem>horizontal damping order and coefficients</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_bgrid/model/bgrid_sponge.html#NAMELIST">bgrid_sponge_nml</ulink></varname></term>
+        <listitem>top model level sponge coefficients </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_bgrid/tools/bgrid_integrals.html#NAMELIST">bgrid_integrals_nml</ulink></varname></term>
+        <listitem>used to set the file name and output interval for global integrals</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_bgrid/tools/bgrid_cold_start.html#NAMELIST">bgrid_cold_start_nml</ulink></varname></term>
+        <listitem>needed for cold-starting the model, only read when the <ulink url="#ic_restarts">restart file</ulink> does not exist</listitem>
+      </varlistentry>
+     </variablelist>
+     </listitem>
+
+     <listitem>Summary of namelist records for the spectral core:
+     <variablelist>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_spectral/model/spectral_dynamics.html#NAMELIST">spectral_dynamics_nml</ulink></varname></term>
+        <listitem>main namelist for the spectral core</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>atmosphere_nml</varname></term>
+        <listitem>atmospheric settings for the <ulink url="../src/atmos_spectral_barotropic/atmosphere.html#NAMELIST">barotropic</ulink> and <ulink url="../src/atmos_spectral_shallow/atmosphere.html#NAMELIST">shallow</ulink> configurations</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_spectral_barotropic/barotropic_dynamics.html#NAMELIST">barotropic_dynamics_nml</ulink></varname></term>
+        <listitem>dynamical settings for the barotropic configuration</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../exp/spectral_barotropic/namelists">barotropic_physics_nml</ulink></varname></term>
+        <listitem>physics settings for the barotropic configuration</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_spectral_shallow/shallow_dynamics.html#NAMELIST">shallow_dynamics_nml</ulink></varname></term>
+        <listitem>dynamical settings for the shallow configuration</listitem>
+      </varlistentry>
+     </variablelist>
+     </listitem>
+
+
+     <listitem>Summary of namelist records for the finite-volume core:
+     <variablelist>
+      <varlistentry>
+        <term><varname><ulink url="../exp/fv/namelists">fv_core_nml</ulink></varname></term>
+        <listitem>main namelist for the finite-volume core</listitem>
+      </varlistentry>
+     </variablelist>
+     </listitem>
+
+
+     <listitem>Summary of namelist records for miscellaneous modules:
+     <variablelist>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_solo/atmos_model.html#NAMELIST">main_nml</ulink></varname></term>
+        <listitem>sets time related variables such as model time step and duration of the run</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/shared/fms/fms.html#NAMELIST">fms_nml</ulink></varname></term>
+        <listitem>sets <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> infrastructure options</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_param/hs_forcing/hs_forcing.html#NAMELIST">hs_forcing_nml</ulink></varname></term>
+        <listitem>sets parameters related to Held-Suarez forcing </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname><ulink url="../src/atmos_spectral_shallow/shallow_physics.html#NAMELIST">shallow_physics_nml</ulink></varname></term>
+        <listitem>setting for the shallow configuration of the bgrid or spectral models</listitem>
+      </varlistentry>
+     </variablelist>
+     </listitem>
+
+     <listitem>Examples of common namelist option changes:
+
+<segmentedlist>
+<?dbhtml list-presentation="table"?>
+<seglistitem>
+<seg><literallayout>Change the run length:
+<command>&amp;main_nml   days = 200 /</command> </literallayout></seg>
+<seg>The default run length set in the simple <ulink url="#runscript">runscripts</ulink> is relatively short. The run length is set in the namelist for the main program, which can be found in the <ulink url="#runscript">runscripts</ulink>. For example, the following change will increase the run length to 200 days.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout>Change the model resolution:
+<command>&amp;bgrid_cold_start_nml
+   nlon=90, nlat=60, nlev=10 /</command>
+<command>&amp;spectral_dynamics_nml
+   lon_max=192, lat_max=96, num_fourier=63, num_spherical=64 /</command></literallayout></seg>
+<seg>Because the simple test cases internally generate their initial state, the model resolution can be easily changed through namelist variables. For the B-grid core, modify the following namelist found in file <filename><ulink url="../exp/bgrid/namelists">atm_dycores/exp/bgrid/namelists</ulink></filename>. Note that <varname>nlon</varname> and <varname>nlat</varname> must be even numbers, and too low a resolution may result in an unphysical solution.
+                                      For a <emphasis>T63</emphasis> spectral core, modify the following namelist variables found in the file <filename><ulink url="../exp/spectral/namelists">atm_dycores/exp/spectral/namelists</ulink></filename>.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout>Change the model time step:
+<command>&amp;main_nml   dt_atmos = 1200 /</command> </literallayout></seg>
+<seg>If the model resolution is changed it may be necessary to also change the model time step. The time step for the atmospheric model is set in the namelist for the main program, which can be found in the <ulink url="#runscript">runscripts</ulink>. For example, in <filename><ulink url="../exp/bgrid/fms_runscript">atm_dycores/exp/bgrid/fms_runscript</ulink></filename> the following will change the time step to 1200 seconds. 
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout>Change the domains stack size:
+<command>&amp;fms_nml   domains_stack_size = 600000 /</command> </literallayout></seg>
+<seg>If you increase the model resolution or are running on a small number of processors, you may get the error message "<errortext>MPP_UPDATE_DOMAINS user stack overflow</errortext>". In this case, increase the domain stack size found in the core-specific namelist files. The new stack size should be greater than or equal to the number printed in the error message.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout>Run the FV core on multiple processors:
+<command>&amp;fv_core_nml   layout = 1, $npes /</command> </literallayout></seg>
+<seg>Decomposition is not supported in the x direction, so the first value is
+1, and $npes is the number of processors the code is run on.
+</seg>
+</seglistitem>
+</segmentedlist>
+
+     </listitem>
+     <listitem>Finite-volume dynamical core namelist, fv_core_nml:
+<para>
+The FV core is set up so that the defaults generally 
+produced the best results. For example, the model will 
+automatically determine a most efficient time step size 
+if n_split is absent from the namelist input or is set 
+to ZERO. The tracer time step is dynamically determined 
+every time step to maintain CFL condition in the 
+north-south direction to be less than ONE. If the user 
+is uncertain about any namelist input, please use the default.
+</para>
+
+1. Required namelist input from the user:
+
+<segmentedlist>
+<?dbhtml list-presentation="table"?>
+<seglistitem>
+<seg><literallayout><command>nlon (integer)</command></literallayout></seg>
+<seg>east-west dimension (e.g., nlon=144 
+  for M45 resolution). The resolution (degrees) is 
+  360/nlon. Due to the use of FFT at high latitudes for 
+  polar filtering, nlon must be an even number.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>mlat (integer)</command></literallayout></seg>
+<seg>north-south dimension (mlat=90 for 
+  M45 resolution). The meridional resolution (degrees) 
+  is 180/(mlat-1). For better load balance, it is 
+  recommend that mlat be divisible by 3 (e.g., 60, 90, 
+  180). However, any number would work.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>nlev (integer)</command></literallayout></seg>
+<seg>vertical dimension (total number of layers).
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>ncnst (integer)</command></literallayout></seg>
+<seg>total number of tracers (including all physics tracers nt_phys). For the standard AM2 physics, ncnst=4.
+</seg>
+</seglistitem>
+
+</segmentedlist>
+
+2. Optional input:
+
+<para>
+2.1 Input that controls the advection operators:
+</para>
+ 
+<para>
+The following "ORD" values determine the transport 
+schemes to be used for different spatial directions and 
+different prognostic variables. These options are 
+mainly for testing/development purposes and a typical 
+user should just use the defaults (Piecewise Parabolic 
+Method with the monotonicity constraint as described in 
+Lin 2004). Setting these values to 2 will force the 
+model to use the 2nd order accurate Van Leer scheme instead.
+</para>
+
+<segmentedlist>
+<?dbhtml list-presentation="table"?>
+
+<seglistitem>
+<seg><literallayout><command>iord_mt (integer)</command></literallayout></seg>
+<seg>advection operator in the zonal direction for momentum.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>iord_tm (integer)</command></literallayout></seg>
+<seg>advection operator in the zonal direction for thermodynamics.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>iord_tr (integer)</command></literallayout></seg>
+<seg>advection operator in the zonal direction for tracers.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>jord_mt (integer)</command></literallayout></seg>
+<seg>advection operator in the meridional direction for momentum.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>jord_tm (integer)</command></literallayout></seg>
+<seg>advection operator in the meridional direction for thermodynamics.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>jord_tr (integer)</command></literallayout></seg>
+<seg>advection operator in the meridional direction for tracers.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>kord_mt (integer)</command></literallayout></seg>
+<seg>advection operator in the vertical direction for momentum.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>kord_tm (integer)</command></literallayout></seg>
+<seg>advection operator in the vertical direction for thermodynamics.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>kord_tr (integer)</command></literallayout></seg>
+<seg>advection operator in the vertical direction for tracers.
+</seg>
+</seglistitem>
+
+</segmentedlist>
+
+<para>
+2.2 Miscellaneous optional input:
+</para>
+
+<segmentedlist>
+<?dbhtml list-presentation="table"?>
+
+<seglistitem>
+<seg><literallayout><command>nt_phys (integer)</command></literallayout></seg>
+<seg>total number of tracers needed by physics (4 in AM2).
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>pnats (integer)</command></literallayout></seg>
+<seg>number of non-advected tracers. This is used by some chemistry packages in which not all tracers are advected.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>n_split (integer)</command></literallayout></seg>
+<seg>number of time splits for the Lagrangian (horizontal) dynamics. The model contains an algorithm for the automatic determination of the most efficient value. If instability arises, the user may want to increase the value of n_split (therefore, reducing the size of time step).
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>n_zonal (integer)</command></literallayout></seg>
+<seg>loop decomposition in East-West direction. This may have some impact on the computational speed if the platform is cache based or is "OpenMP" capable.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>map_dt (integer)</command></literallayout></seg>
+<seg>remapping time step (equal to model time step). The option of using different remapping time step than the physics is currently not supported.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>consv_te (real)</command></literallayout></seg>
+<seg>energy fixer. Range[0,1.]. The default is ZERO (no energy conservation correction). Setting consv_te to ONE force the dynamics to maintain exact conservation of total energy for each time step.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>restart_format (character)</command></literallayout></seg>
+<seg>"native" (IEEE) or "netcdf".
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>adiabatic (logical)</command></literallayout></seg>
+<seg>run the model without any physics (diabatic) forcing. This flag is mainly used to turn off the Held-Suarez in the "solo" mode.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>full_phys (logical)</command></literallayout></seg>
+<seg>run the model with full (AM2) physics with virtual effects (when computing geopotential).
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>fill (logical)</command></literallayout></seg>
+<seg>activate a vertical filling algorithm for tracers (needed if physics/chemistry produced negatives).
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>adjust_dry_mass (logical)</command></literallayout></seg>
+<seg>adjust the initial global mean dry mass to pre-set value.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>n_spong (integer)</command></literallayout></seg>
+<seg>total number of sponge layers (counting from top; default is 1). The horizontal transport scheme is set to the highly diffusive first order upwind scheme within the sponge layers.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>n_diffu (integer)</command></literallayout></seg>
+<seg>number of diffusive layers (counting from the bottom; default is 0). This mirrors the top sponge layers. This option may be useful only in certain idealized environment -- it is not recommended for general usage.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>change_time (logical)</command></literallayout></seg>
+<seg>ignore time stamp in the restart file. This option is useful for swapping restart files from a different time/date.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>a_div (real)</command></literallayout></seg>
+<seg>dimensionless divergence damping parameters: D = a_div + b_div * cos(lat). The physical damping coefficient will be equal to D * dx * dy / dt.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>b_div (real)</command></literallayout></seg>
+<seg>dimensionless divergence damping parameters: D = a_div + b_div * cos(lat).
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>use_set_eta (logical)</command></literallayout></seg>
+<seg>use set_eta(), instead of restart, for (ak,bk). This is useful for doing model model cold start. Several settings are available, ranging from 18 to 100 layers. The routine for setting the definition of the "eta" coordinate (for remapping) is located in <ulink url="../src/atmos_fv_dynamics/tools/set_eta.f90">src/atmos_fv_dynamics/tools/set_eta.f90</ulink>.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>use_tendency (logical)</command></literallayout></seg>
+<seg>use the tendency approach for updates. This option is no longer supported.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>do_ch4_chem</command></literallayout></seg>
+<seg>relax H2o to Haloe data between 1 and 10 mb. This is a rarely used option. It is mainly used for starting the model from a totally dry atmosphere.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>pft_phys (logical)</command></literallayout></seg>
+<seg>polar filter physical tendencies. This option may be useful for high resolution runs. Default is .F.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>age_tracer (logical)</command></literallayout></seg>
+<seg>transport the age tracer as the last tracer. This option is no longer supported.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>print_freq (integer)</command></literallayout></seg>
+<seg>print max/min of some selected fields (0: off; positive n: every n hours; negative n: every time step).
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>icase (integer)</command></literallayout></seg>
+<seg>test case number if "SW_DYN" (shallow water dynamics) is defined during compilation. In this mode, nlev must be set to ONE.
+</seg>
+</seglistitem>
+
+<seglistitem>
+<seg><literallayout><command>layout (integer)</command></literallayout></seg>
+<seg>computational layout (layout = 1, $npes). Decomposition is not supported
+in the x-direction and $npes is the number of processors.
+</seg>
+</seglistitem>
+
+</segmentedlist>
+
+     </listitem>
+   </itemizedlist>
+
+</section>
+
+<section id="ic_restarts">
+   <title>Initial conditions and restart files</title>
+   <para>
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> uses restart
+     files to save the exact (bit-reproducible) state of the model at the end
+     of a model run. The restart files are used as an initial condition to
+     continue a model run from an earlier model integration. A module (or
+     package of modules) will write data to a restart file if it is needed for
+     a bit-reproducible restart. The input restart files (the initial
+     conditions) are read from the <filename>INPUT</filename> subdirectory. The
+     output restart files are written to the <filename>RESTART</filename>
+     subdirectory. The simple <ulink url="#runscript">runscripts</ulink>
+     create these two directories when setting up the model run.
+   </para>
+   <para>
+     The initial condition file specified in the simple
+     <ulink url="#runscript">runscripts</ulink> is a cpio archive file that
+     contains the restart files created by individual modules. The test cases
+     provided with this release do not specify an initial condition file, but
+     rather generate their initial states internally. The test case will 
+     however create output restart files, and a user may want to archive or
+     move the output restart files so they can be used as an initial condition
+     when continuing a model run. 
+   </para>
+   <para>
+     To create a cpio archive file:
+<programlisting>
+       cd RESTART
+       /bin/ls *.res* | cpio -ov > OutputRestart.cpio 
+</programlisting>
+   </para>
+   <para>
+      or, simply move the output files to the <filename>input</filename>
+      directory:
+<programlisting>
+       rm INPUT/*.res*
+       mv RESTART/*.res* INPUT
+       mpirun -np 1 fms.exe # rerun the model 
+</programlisting>
+   </para>
+   <para>
+     Because the restart file for the main program contains information about
+     the current model time, there is no need to modify any namelist or input
+     files before rerunning the model.
+   </para>
+   <para>
+     The restart file created by the B-grid core is called
+     <filename>bgrid_prog_var.res.nc</filename> and the restart file created by
+     the spectral core is called <filename>spectral_dynamics.res.nc</filename>.
+     Here are some specific details about the restart file for each core.
+   </para>
+   <para>
+     Bgrid:
+     <itemizedlist>
+       <listitem>May be written as (64-bit)
+                 <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                 netCDF</ulink> files or (machine-dependent) native format
+                 files. This output option is set using a namelist variable. 
+       </listitem>
+       <listitem>May be restarted from either
+                 <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                 netCDF</ulink> or native restart files. The model will look
+                 for both file types, no namelist variable is needed.
+       </listitem>
+       <listitem>The restart file contains the vertical grid, topography, and
+                 the prognostic variables.
+       </listitem>
+       <listitem>The model resolution is determined from the restart file.
+       </listitem>
+       <listitem>If no restart file is present, then a cold-start
+                 initialization is attempted. See the namelist options and
+                 on-line documentation for module
+                 <ulink url="../src/atmos_bgrid/tools/bgrid_cold_start.html">
+                 <filename>bgrid_cold_start</filename></ulink>.
+       </listitem>
+       <listitem>A separate restart file is written/read for atmospheric
+                 tracers. When the netCDF restart option is used a single
+                 <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                 netCDF</ulink> tracer restart file is written. When
+                 native-format restarts are written each tracer is saved to a
+                 separate file.
+       </listitem>
+     </itemizedlist>
+   </para>
+   <para>
+     Spectral:
+     <itemizedlist>
+       <listitem>Written only as (64-bit)
+                 <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                 netCDF</ulink>.
+       </listitem>
+       <listitem>May be restarted from either
+                 <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                 netCDF</ulink> or native restart files. The model will look
+                 for both file types, no namelist variable is needed. 
+       </listitem>
+       <listitem>The restart file contains the vertical grid, topography, and
+                 the prognostic variables.
+       </listitem>
+       <listitem>The model resolution is determined from namelist settings,
+                 resolution of restart data is checked against that set in
+                 namelist. 
+       </listitem>
+       <listitem>Model is cold-started when no restart file is present.
+                 Additional namelists may optionally be supplied when
+                 cold-started. These allow the specification of the vertical
+                 coordinate, initial temperature of the atmosphere, and the 
+                 surface height.
+       </listitem>
+       <listitem>A separate restart file is written/read for each atmospheric
+                 <ulink url="#fieldTable">tracer</ulink>. 
+       </listitem>
+     </itemizedlist>
+   </para>
+   <para>
+     Finite Volume:
+     <itemizedlist>
+       <listitem>May be written as (64-bit)
+                 <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                 netCDF</ulink> files or (machine-dependent) native format
+                 files. This output option is set using a namelist variable. 
+       </listitem>
+       <listitem>May be restarted from either
+                 <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+                 netCDF</ulink> or native restart files. The model will look
+                 for both file types, no namelist variable is needed.
+       </listitem>
+       <listitem>The restart file contains the vertical grid, topography, and
+                 the prognostic variables.
+       </listitem>
+       <listitem>The model resolution is determined from namelist settings,
+                 resolution of restart data is checked against that set in
+                 namelist. 
+       </listitem>
+       <listitem>Model is cold-started when no restart file is present.
+       </listitem>
+       <listitem>A separate restart file is written/read for each atmospheric
+                 <ulink url="#fieldTable">tracer</ulink>. 
+       </listitem>
+     </itemizedlist>
+   </para>
+</section>
+
+<section id="mppnccombine">
+   <title>mppnccombine</title>
+   <para>
+     Running the <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> source
+     code in a parallel processing environment will produce one output
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     diagnostic file per processor. <command>mppnccombine</command> joins
+     together an arbitrary number of data files containing chunks of a
+     decomposed domain into a unified
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     file. If the user is running the source code on one processor, the domain
+     is not decomposed and there is only one data file.
+     <command>mppnccombine</command> will still copy the full contents of the
+     data file, but this is inefficient and <command>mppnccombine</command>
+     should not be used in this case. Executing <command>mppnccombine</command>
+     is automated through the <ulink url="#runscript">runscripts</ulink>.
+     The data files are
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     format for now, but IEEE binary may be supported in the future. 
+   </para>
+   <para>
+     <command>mppnccombine</command> requires decomposed dimensions in each
+     file to have a <option>domain_decomposition</option> attribute. This
+     attribute contains four integer values: starting value of the entire
+     non-decomposed dimension range (usually 1), ending value of the entire
+     non-decomposed dimension range, starting value of the current chunk's
+     dimension range and ending value of the current chunk's dimension range.
+     <command>mppnccombine</command> also requires that each file have a
+     <option>NumFilesInSet</option> global attribute which contains a single
+     integer value representing the total number of chunks (i.e., files) to
+     combine. 
+   </para>
+   <para>
+     The syntax and arguments of <command>mppnccombine</command> are as
+     follows:
+<programlisting>
+mppnccombine [-v] [-a] [-r] output.nc [input ...] 
+        -v      print some progress information
+        -a      append to an existing <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink> file
+        -r      remove the '.####' decomposed files after a successful run
+</programlisting>
+   </para>
+   <para>
+     An output file must be specified and it is assumed to be the first
+     filename argument. If the output file already exists, then it will not be
+     modified unless the option is chosen to append to it. If no input files
+     are specified, their names will be based on the name of the output file
+     plus the extensions '.0000', '.0001', etc. If input files are specified,
+     they are assumed to be absolute filenames. A value of 0 is returned if
+     execution is completed successfully and a value of 1 indicates otherwise.
+   </para>
+   <para>
+     The source of <command>mppnccombine</command> (mppnccombine.c) is packaged with the
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink>
+     dynamical cores in the <ulink url="../postprocessing"><filename>atm_dycores/postprocessing</filename></ulink> directory.
+     <command>mppnccombine.c</command> is automatically compiled in the runscript when more
+     than 1 processor is specified. It should be compiled on the platform where
+     the user intends to run the <ulink url="http://www.gfdl.noaa.gov/~fms">
+     FMS</ulink> &Release; atmospheric dynamical cores source code. A C compiler
+     and <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF
+     </ulink> library are required for compiling
+     <command>mppnccombine.c</command>.
+   </para>
+</section>
+
+</section>
+
+<section id="examiningOutput">
+   <title>Examining output</title>
+
+<section id="modelOutput">
+   <title>Model output</title>
+   <para>
+     Output from a <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> model
+     run will be written to the directory where the model was run. FMS models
+     write output in <acronym>ASCII</acronym>, binary, and 
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     formats. <acronym>ASCII</acronym> or text output files have the
+     <filename>*.out</filename> suffix. For example, files of the form
+     <filename>*integral.out</filename> contain global integrals and
+     <filename>logfile.out</filename> contains the namelist and revision number
+     output. Note that the spectral model does not produce
+     <filename>*integral.out</filename> files. Standard output and standard
+     error messages created by the model may be directed to a file called
+     <filename>fms.out</filename>. The diagnostics files, specified in the
+     diagnostics table, are written as
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     files with the <filename>*.nc</filename> suffix. The output restart files
+     are written to the subdirectory <filename>RESTART</filename> and will have
+     the <filename>*.res.nc</filename> or <filename>*.res</filename> suffix.
+   </para>
+   <para>
+     You may download sample output data for comparison at
+     <ulink url="https://fms.gfdl.noaa.gov/projects/fms/">https://fms.gfdl.noaa.gov/projects/fms/</ulink>
+     under the "Files" tab.
+     Each tar file expands to a directory containing a
+     readme file along with netcdf and ascii output. The files
+     <filename>bgrid_output.tar.gz</filename>,
+     <filename>fv_output.tar.gz</filename> and
+     <filename>spectral_output.tar.gz</filename> contain daily snapshots of
+     surface pressure and time means of all fields over the 200 to 1200 day
+     period. The file <filename>bgrid_shallow_output.tar.gz</filename> contains
+     daily snapshots of surface pressure and time means of all fields over a
+     30 day period. The file
+     <filename>spectral_barotropic_output.tar.gz</filename> contains 1000 days
+     of diagnostic output with a 200 day spin-up period for the spectral
+     barotropic model. <filename>spectral_shallow_output.tar.gz</filename>
+     contains 30 days of diagnostic output for the spectral shallow water
+     model.
+   </para>
+</section>
+
+<section id="displayingOutput">
+   <title>Displaying the output</title>
+   <para>
+     There are several graphical packages available to display the model
+     output. These packages widely vary depending on factors, such as the
+     number of dimensions, the amount and complexity of options available and
+     the output data format. The data will first have to be put into a common
+     format that all the package can read.
+     <ulink url="http://www.gfdl.noaa.gov/~fms">FMS</ulink> requires the data
+     to be stored in <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">
+     netCDF</ulink> format since it is so widely supported for scientific
+     visualization. The graphical package is also dependent upon the computing
+     environment. This section will discuss a two-dimensional browser that is
+     used on workstations, <command>ncview</command>. Please reference the
+     <ulink url="http://www.gfdl.noaa.gov/products/vis/visguide.html"> GFDL
+     Scientific Visualization Guide</ulink> for information on additional
+     graphical packages. 
+   </para>
+</section>
+
+<section id="ncview">
+   <title>ncview</title>
+   <para>
+     <command>ncview</command> is a visual browser for
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     data format files and displays a two-dimensional, color representation of
+     single precision floating point data in a
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     file. You can animate the data in time by creating simple movies, flip or
+     enlarge the picture, scan through various axes, change colormaps, etc.
+     <command>ncview</command> is not a plotting program or an analysis
+     package. Thus, contour lines, vectors, legend/labelbar, axis/tic-marks and
+     geography are not included. The user is unable to perform X-Z or Y-Z
+     cross-sections, unless there is a fourth dimension, time. Rather,
+     <command>ncview's</command> purpose is to view data stored in
+     <ulink url="http://www.unidata.ucar.edu/packages/netcdf/">netCDF</ulink>
+     format files quickly, easily and simply. 
+   </para>
+   <para>
+     <command>ncview</command> is capable of short user spin-up, fast cross
+     sectioning, magnification, predefined color palettes which can be inverted
+     and 'scrunched' to highlight high or low values, animation along the least
+     quickly varying dimension only with speed control and printing. It also
+     has the ability to read a series of files as input, such as a sequence of
+     snapshot history files. A time series graph for variables pops up by
+     clicking the mouse at a specific point. Other options include a 
+     mouse-selectable colormap endpoints with optional reset, map overlay and
+     a filter for one-dimensional variables.
+   </para>
+   <para>
+     In <command>ncview</command>, the user can
+     <command>&lt;left-click&gt;</command> on any point in a plot to get a
+     graph of the variable verses time at that point. Also,
+     <command>&lt;Ctrl&gt;&lt;left-click&gt;</command> on any point to set the
+     colormap minimum to the value at that point, while
+     <command>&lt;Ctrl&gt;&lt;right-click&gt;</command> on any point will set
+     the colormap maximum to the value at that point. Use the "Range" button to
+     set (or reset) the colormap min/max. For additional information on
+     <command>ncview</command>, refer to the <command>ncview</command> UNIX
+     manual page (<command>man ncview</command>) or the
+     <ulink url="http://meteora.ucsd.edu/~pierce/ncview_home_page.html">
+     <command>ncview</command> homepage</ulink>.
+   </para>
+</section>
+
+</section>
+
+<section id="performance">
+   <title>Performance</title>
+   <para>
+     The test cases provided with this release have been run on the SGI Altix
+     Intel Itanium2 1.5 GHz (ifort.9.0-027/mpt-1.12-1) and Origin 3800 MIPS R14000 600
+     MHz (mipspro_743m/mpt_1900) large-scale clusters at the
+     <ulink url="http://www.gfdl.noaa.gov">Geophysical Fluid Dynamics
+     Lab</ulink>. The table below summarizes the performance for each of the 
+     test cases. 
+   </para>
+<programlisting>
+<emphasis role="bold">Model                Resolution            Run length (days)    # pe     Time (sec) on Altix     Time (sec) on Origin 3800</emphasis>
+bgrid                N45 (144 x 90 x 20)         200             15             2303                      7757 
+bgrid_shallow        N45 (144 x 90)              200             15              130                       378
+fv                   M45 (144 x 90 x 20)         200             15             2425                      6201
+spectral             T42 (128 x 64 x 20)         200             16              384                      1399
+spectral_barotropic  T85 (256 x 128)             200             16               63                       243
+spectral_shallow     T85 (256 x 128)             200             16              112                       392 
+</programlisting>
+</section>   
+
+</article>
