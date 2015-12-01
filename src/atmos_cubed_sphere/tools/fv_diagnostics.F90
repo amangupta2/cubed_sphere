@@ -870,15 +870,16 @@ contains
 #endif
 
     elseif ( Atm(n)%range_warn ) then
-         call range_check('DELP', Atm(n)%delp, isc, iec, jsc, jec, ngc, npz, Atm(n)%agrid,    &
-                           master, 0.1*ptop, 200.E2, bad_range)
-         call range_check('UA', Atm(n)%ua, isc, iec, jsc, jec, ngc, npz, Atm(n)%agrid,   &
-                           master, -220., 250., bad_range)
-         call range_check('VA', Atm(n)%ua, isc, iec, jsc, jec, ngc, npz, Atm(n)%agrid,   &
-                           master, -220., 220., bad_range)
+       !epg: I will widen the range for checking, and focus only on T 
+       !  call range_check('DELP', Atm(n)%delp, isc, iec, jsc, jec, ngc, npz, Atm(n)%agrid,    &
+       !                    master, 0.1*ptop, 200.E2, bad_range)
+       !  call range_check('UA', Atm(n)%ua, isc, iec, jsc, jec, ngc, npz, Atm(n)%agrid,   &
+       !                    master, -220., 250., bad_range)
+       !  call range_check('VA', Atm(n)%ua, isc, iec, jsc, jec, ngc, npz, Atm(n)%agrid,   &
+       !                    master, -220., 220., bad_range)
 #ifndef SW_DYNAMICS
          call range_check('TA', Atm(n)%pt, isc, iec, jsc, jec, ngc, npz, Atm(n)%agrid,   &
-                           master, 150., 350., bad_range)
+                           master, 50., 500., bad_range)
 #endif
 
     endif
