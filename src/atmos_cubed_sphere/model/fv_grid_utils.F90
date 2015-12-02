@@ -117,7 +117,7 @@
 
  contains
 
-   subroutine grid_utils_init(Atm, npx, npy, npz, uniform_vert_spacing, grid, agrid, area, area_c, &
+   subroutine grid_utils_init(Atm, npx, npy, npz, uniform_vert_spacing, use_PK_sigma, grid, agrid, area, area_c, &
                               cosa, sina, dx, dy, dxa, dya, dxc, dyc, non_ortho,   &
                               uniform_ppm, grid_type, c2l_order)
 ! Initialize 2D memory and geometrical factors
@@ -125,6 +125,7 @@
       logical, intent(in):: non_ortho
       integer, intent(in):: npx, npy, npz
       logical, intent(in):: uniform_vert_spacing
+      logical, intent(in):: use_PK_sigma !epg: an option for Polvani-Kushner sigma level spacing
       integer, intent(in):: grid_type, c2l_order
       real, intent(in)::  grid(isd:ied+1,jsd:jed+1,2)
       real, intent(in):: agrid(isd:ied  ,jsd:jed  ,2)
@@ -162,7 +163,7 @@
            Atm%ks    = 0
       else
 ! Initialize (ak,bk) for cold start; overwritten with restart file
-           call set_eta(npz, uniform_vert_spacing, ks, ptop, Atm%ak, Atm%bk)
+           call set_eta(npz, uniform_vert_spacing, use_PK_sigma, ks, ptop, Atm%ak, Atm%bk)
            Atm%ks = ks
 #ifdef PRINT_GRID
            if ( gid==0 ) then
