@@ -41,6 +41,9 @@ use fms_mod,       only: file_exist, open_namelist_file,   &
 use time_manager_mod, only: time_type, get_time, set_time, operator(+)
 use mpp_domains_mod,  only: domain2d
 
+!epg: we'll initialize the Held-Suarzez forcing 
+use hswf_mod, only: Held_Suarez_init
+
 !------------------
 ! FV specific codes:
 !------------------
@@ -121,6 +124,11 @@ contains
          call timing_on('fv_restart')
     call fv_restart(domain, Atm, dt_atmos, seconds, days, cold_start, grid_type)
          call timing_off('fv_restart')
+
+
+!epg: initialize the hs_forcing, too
+    call Held_Suarez_init
+
 
 #ifdef PERTURB_IC
     isc = Atm(1)%isc
