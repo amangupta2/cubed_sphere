@@ -327,13 +327,18 @@ contains
   call cubed_to_latlon(u, v, ua, va, dx, dy, rdxa, rdya, npz, 1)
 
   if ( range_warn ) then
-       call range_check('UA_dyn', ua, is, ie, js, je, ng, npz, agrid,   &
-                         gid==0, -220., 260., bad_range)
-       call range_check('VA_dyn', ua, is, ie, js, je, ng, npz, agrid,   &
-                         gid==0, -220., 220., bad_range)
-#ifndef SW_DYNAMICS
+       ! epg: this cuttoff was a bit too sensitive.  When the model crashes, temperature
+       !      goes way out of range, and is sufficient to kill a bad integration.
+       !call range_check('UA_dyn', ua, is, ie, js, je, ng, npz, agrid,   &
+       !                  gid==0, -220., 260., bad_range)
+       !call range_check('VA_dyn', ua, is, ie, js, je, ng, npz, agrid,   &
+       !                  gid==0, -220., 220., bad_range)
        call range_check('TA_dyn', pt, is, ie, js, je, ng, npz, agrid,   &
-                         gid==0, 150., 350., bad_range)
+                         gid==0, 50., 500., bad_range)
+       
+#ifndef SW_DYNAMICS
+       !call range_check('TA_dyn', pt, is, ie, js, je, ng, npz, agrid,   &
+       !                  gid==0, 150., 350., bad_range)
 #endif
   endif
 
@@ -561,7 +566,7 @@ contains
                               ua, va, delz, cp, rg, hydrostatic, conserve)
     real, intent(in):: dt
     real, intent(in):: tau              ! time scale (days)
-    real, intent(in):: p_c
+    real, intent(in):: p_c              ! epg: center of Rayleigh friction in SJ's scheme
     real, intent(in):: cp, rg
     real, intent(in),  dimension(npz):: pm
     integer, intent(in):: npx, npy, npz, ks
@@ -580,6 +585,11 @@ contains
     real, parameter:: u000 = 4900.   ! scaling velocity  **2
     real c1, pc, fac
     integer i, j, k
+    ! epg: this switches the upper level Rayleigh drag to be like that of the Polvani-Kushner 
+    !      set up
+    logical :: use_PK_sponge = .true.
+    ! epg: this sets the bottom of the drag region
+    real :: strat_damping_pbottom = 50.0
 
     if ( .not. RF_initialized ) then
           allocate( rf(npz) )
@@ -594,18 +604,35 @@ contains
           if( gid==0 ) write(6,*) 'Rayleigh friction E-folding time [days]:'
           c1 = 1. / (tau*sday)
 
-          kmax = 1
-          do k=1,npz
-             if ( pm(k) < 40.E2 ) then
-                  rf(k) = c1*(1.+tanh(log10(pc/pm(k))))
-                  kmax = k
-                  if( gid==0 ) write(6,*) k, 0.01*pm(k), 1./(rf(k)*sday)
-             else
-                exit
-             endif
-          enddo
-          if( gid==0 ) write(6,*) 'Rayleigh Friction kmax=', kmax
 
+          if ( use_PK_sponge ) then
+            ! epg: this is the Polvani-Kushner stratospheric sponge
+             kmax = 1
+             do k=1,npz
+                if ( pm(k) < strat_damping_pbottom ) then
+                   rf(k) = c1*(strat_damping_pbottom-pm(k))**2/ &
+                            (strat_damping_pbottom)**2
+                   kmax = k
+                   if( gid==0 ) write(6,*) k, 0.01*pm(k), 1./(rf(k)*sday)
+                else
+                   exit
+                endif
+             enddo
+          else
+             ! epg: this is SJ's Rayleigh Friction
+             kmax = 1
+             do k=1,npz
+                if ( pm(k) < 40.E2 ) then
+                   rf(k) = c1*(1.+tanh(log10(pc/pm(k))))
+                   kmax = k
+                   if( gid==0 ) write(6,*) k, 0.01*pm(k), 1./(rf(k)*sday)
+                else
+                   exit
+                endif
+             enddo
+          endif
+
+          if( gid==0 ) write(6,*) 'Rayleigh Friction kmax=', kmax          
           RF_initialized = .true.
     endif
 
