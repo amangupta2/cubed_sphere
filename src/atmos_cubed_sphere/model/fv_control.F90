@@ -1,7 +1,7 @@
 ! $Id: fv_control.F90,v 18.0.2.1 2010/05/13 17:36:18 pjp Exp $
 !
 !----------------
-! FV contro panel
+! FV control panel
 !----------------
 
 module fv_control_mod
@@ -180,6 +180,7 @@ module fv_control_mod
    logical :: moist_phys = .true.     ! Run with moist physics
    logical :: do_Held_Suarez = .false.
    logical :: uniform_vert_spacing=.false. ! Uniform vertical spacing for any npz
+   logical :: use_PK_sigma = .false. !epg: an option for Polvani-Kushner sigma level spacing
    logical :: reproduce_sum = .true.  ! Make global sum for consv_te reproduce
    logical :: adjust_dry_mass = .false.
    logical :: fv_debug  = .false.
@@ -363,7 +364,8 @@ module fv_control_mod
       Atm(1)%ntiles = ntiles
 
     ! Initialize the SW (2D) part of the model
-      call grid_utils_init(Atm(1), Atm(1)%npx, Atm(1)%npy, Atm(1)%npz, uniform_vert_spacing, Atm(1)%grid, Atm(1)%agrid, &
+      call grid_utils_init(Atm(1), Atm(1)%npx, Atm(1)%npy, Atm(1)%npz, uniform_vert_spacing, use_PK_sigma, &
+                           Atm(1)%grid, Atm(1)%agrid, &
                            area, area_c, cosa, sina, dx, dy, dxa, dya, dxc, dyc, non_ortho,   &
                            uniform_ppm, grid_type, c2l_ord)
 
@@ -567,7 +569,8 @@ module fv_control_mod
 
       namelist /mpi_nml/npes_x,npes_y  ! Use of this namelist is deprecated
       namelist /fv_grid_nml/grid_name,grid_file
-      namelist /fv_core_nml/npx, npy, ntiles, npz, uniform_vert_spacing, npz_rst, layout, io_layout, ncnst, nwat, &
+      namelist /fv_core_nml/npx, npy, ntiles, npz, uniform_vert_spacing, use_PK_sigma, &
+                            npz_rst, layout, io_layout, ncnst, nwat, &
                             k_split, n_split, m_split, q_split, print_freq,   &
                             hord_mt, hord_vt, hord_tm, hord_dp, hord_ze, hord_tr, &
                             kord_mt, kord_tm, kord_tr, fv_debug, fv_land, nudge,  &
