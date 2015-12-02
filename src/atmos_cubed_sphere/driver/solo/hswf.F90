@@ -6,9 +6,13 @@ module hswf_mod
  use diag_manager_mod,   only: send_data
  use lin_cld_microphys_mod,         only: lin_cld_microphys_driver, sg_conv, qsmith
 
+ use mpp_mod,            only: FATAL, mpp_error, stdlog, &
+                               mpp_npes, mpp_get_current_pelist, get_unit
+!epg: I added these for reading the namelist
  use fv_grid_tools_mod,  only: area
  use fv_grid_utils_mod,  only: g_sum
- use fv_mp_mod,          only: domain
+ use fv_mp_mod,          only: domain, gid
+!epg: I added 'gid' for use in the Held_Suarez_init subroutine 
  use fv_diagnostics_mod, only: prt_maxmin
  use fv_timing_mod,      only: timing_on, timing_off
 
@@ -17,7 +21,37 @@ module hswf_mod
       logical :: rf_initialized = .false.
 
       private
-      public :: Held_Suarez_Strat, Held_Suarez_Tend, Sim_phys, age_of_air
+      public :: Held_Suarez_Strat, Held_Suarez_Tend, Sim_phys, age_of_air, &
+           Held_Suarez_init
+!epg: added Held_Suarez_init, so that we can use a namelist to control 
+!     the forcing
+
+
+!-----------------------------------------------------------------------
+
+!epg: namelist parameters for the Held-Suarez troposphere
+!     they are set to default values in the original H-S 1994 paper
+      real :: ty = 60.0  ! equator-pole temp gradient (K)
+      real :: tz = 10.0  ! vertical temp gradient (K)
+      real :: t0 = 200.0 ! isothermal stratospheric temperature
+                         ! (overwritten by t_tropopause if PK stratosphere invoked)
+      real :: eps = 0.0  ! asymmetry in temperature forcing btw hemispheres (K)
+      real :: tau_v = 1.0   ! surface Rayleigh damping time scale (days) 
+      real :: tau_a = 40.0  ! free atmosphere Newtonian relaxation time scale (days)
+      real :: tau_s = 4.0   ! tropical boundary layer Newt. relax. time scale (days)
+
+!epg: namelist parameters for the Polvani-Kushner stratosphere
+      logical :: pk_stratosphere = .false.  ! option to turn it on
+      logical :: polar_vortex_only = .false. ! a flag that allows you to only
+                                             ! add a cold vortex, but leave
+                                             ! everything else isothermal at
+                                             ! t0 K, as with the standard HS 
+                                             ! forcing.
+      real :: p_tropopause = 10000.0      ! lower boundary of the Kushner-Polvani
+                                          !   stratospheric forcing (in Pa)
+      real :: vortex_edge = 50.0        ! polar vortex edge location (in deg.)
+      real :: vortex_edge_width = 10.0  ! polar vortex edge width
+      real :: vortex_gamma = -2.e-3     ! polar vortex lapse rate (in K/m)
 
 !epg: namelist parameters for tracers
       logical :: do_age_of_air = .false.   ! compute the age of air
@@ -25,9 +59,82 @@ module hswf_mod
       logical :: do_pulse_tracer = .false. ! a pulse of tracer, to test conservation
       real :: p_source = 70000.0     ! source/sinks of tracers are below this level
 
+!epg: namelist parameters for global warming-like simulations (as explored by
+!     Butler etal. 2010 and Wang et al. 2011
+      logical :: do_ghg_heating = .false. ! flag to turn it on/off
+      real :: ghg_heating_amplitude = 0.1 ! amplitude K/day (see Wang et al. 2011)
+      real :: ghg_ypos = 0.0              ! meridional position, degrees
+      real :: ghg_ywid = 22.91            ! meridional width, degrees
+      real :: ghg_zpos = 0.300            ! vertical position, sigma levels
+      real :: ghg_zwid = 0.11             ! vertical extent, sigma coords
+
+
 contains
 
-!-----------------------------------------------------------------------
+
+!epg: load in the namelist
+ subroutine Held_Suarez_init
+
+   ! for identifying the controlling processor
+   integer, allocatable :: pelist(:)
+   logical :: master
+   integer :: commID
+
+   ! for reading the namelist
+   character(len=80) :: filename
+   integer :: ios, f_unit
+   logical :: exists
+   integer :: unit
+
+   !epg: for converting namelist variable units
+   real :: deg_to_rad = 3.14159265358979/180.0
+
+   !epg: a hswf namelists 
+   namelist /hswf_nml/ty, tz, t0, eps, tau_v, tau_a, tau_s, pk_stratosphere, &
+        polar_vortex_only, p_tropopause, vortex_edge, vortex_edge_width, &
+        vortex_gamma, stratospheric_damping, strat_damping_pbottom, tau_strat, &
+        do_age_of_air, do_delta_tracer, do_pulse_tracer, p_source, &
+        do_ghg_heating, ghg_heating_amplitude, ghg_ypos, ghg_ywid, ghg_zpos, ghg_zwid
+
+   allocate( pelist(mpp_npes()) )
+   call mpp_get_current_pelist( pelist, commID=commID )
+   master = gid==0
+
+   !epg: read parameters from namelist
+   filename = "input.nml"
+   inquire(file=filename,exist=exists)
+
+   if (.not. exists) then  ! This will be replaced with fv_error wrapper
+      if(master) write(6,*) "file ",trim(filename)," doesn't exist"
+      call mpp_error(FATAL,'FV core terminating')
+   else
+      f_unit = get_unit()
+      open (f_unit,file=filename)
+      ! Read hswf namelist
+      rewind (f_unit)
+      read (f_unit,hswf_nml,iostat=ios)
+      if (ios .gt. 0) then
+         if(master) write(6,*) 'hswf_nml ERROR: reading ',trim(filename),', iostat=',ios
+         call mpp_error(FATAL,'FV core terminating')
+      endif
+      unit = stdlog()
+      write(unit, nml=hswf_nml)
+      close (f_unit)
+   endif
+
+   ! epg: for applying the global warming like perturbation
+   if (do_ghg_heating) then
+      ! convert degrees to radians
+      ghg_ypos = ghg_ypos * deg_to_rad
+      ghg_ywid = ghg_ywid * deg_to_rad
+      ! convert K/day to K/second         
+      ghg_heating_amplitude = ghg_heating_amplitude/86400.0
+   end if
+
+
+ end subroutine Held_Suarez_init
+
+ 
  subroutine Held_Suarez_Tend(npx, npy, npz, is, ie, js, je, ng, nq,   &
                               u, v, pt, q, pe, delp, peln, pkz, pdt,  &
                               ua, va, u_dt, v_dt, t_dt, q_dt, agrid,  &
@@ -70,9 +177,10 @@ contains
 
 ! Local
       real pref(npz)
-      integer  i,j,k
-      real  ty, tz, akap 
-      real  p0, t0, sday, rkv, rka, rks, rkt, sigb, rsgb
+      integer  i,j,k,l
+      !epg: these are namelist parameters now: t0, ty, tz
+      real akap
+      real  p0, sday, rkv, rka, rks, rkt, sigb, rsgb
       real  tmp
       real  ap0k, algpk
       real  tey, tez, fac, pw, sigl
@@ -90,21 +198,71 @@ contains
       real :: teq(is:ie, js:je, 1:npz)
       real rdg
 
+
+! epg: for the Polvani-Kushner Stratosphere
+      ! the following fields are used to construct a realistic stratosphere
+      !----------- US Standard Atmospheric Temperature 1976 ------------------
+      integer, parameter :: satm_levs = 8
+      real, parameter, dimension(satm_levs) :: &
+           satm_p = (/ 100000.00000000, &
+                        22336.11050922, &
+                         5403.29501078, &
+                          856.66783593, &
+                          109.45601338, &
+                           66.06353133, &
+                            3.90468337, &
+                            0.00000001 /), &
+           satm_t = (/ 288.150, &
+                       216.650, &
+                       216.650, &
+                       228.650, &
+                       270.650, &
+                       270.650, &
+                       214.650, &
+                       186.946 /), &
+            satm_g = (/ -6.5e-3, &
+                        0.0e-3, &
+                        1.0e-3, &
+                        2.8e-3, &
+                        0.0e-3, &
+                        -2.8e-3, &
+                        -2.0e-3, &
+                        0.0e-3 /)
+       real :: t_tropopause = 216.650
+       real :: rad_to_deg = 180./3.14159265358979
+       real :: lat_weight, t_satm, t_vortex
+
+!epg: for stratospheric Rayleigh damping
+       real :: rk_strat
+       real :: pres
+       real :: rayd
+
+
+
+
       rdg = -rdgas / grav
 
-      ty = 60.0
-      tz = 10.0             ! Original value from H-S was 10.
+      !epg: these are set in the namelist
+      !ty = 60.0
+      !tz = 10.0             ! Original value from H-S was 10.
       akap = 2./7.
 
       p0 = 100000.
-      t0 = 200.
+      !epg: set in namelist t0 = 200.         ! stratosphere temperature
       h0 = 7.
       sday = 24.*3600.
       rdt = 1. / pdt
 
-      rkv = pdt/sday
-      rka = pdt/ (40.*sday)      ! was 40 days
-      rks = pdt/ (4.*sday)       ! was 4 days
+      ! epg: these values are now set with the namelist
+      rkv = pdt/(tau_v*sday)     ! Rayleigh friction near surface 
+      rka = pdt/ (tau_a*sday)    ! free atmosphere Newtonian damping
+      rks = pdt/ (tau_s*sday)    ! tropical boundary layer Newtonian damping
+      !epg: also need time scale for stratospheric sponge
+      if (tau_strat > 0) then
+         rk_strat = pdt / (tau_strat*sday)
+      else
+         rk_strat = 0.
+      endif
 
 ! For strat-mesosphere
       t_ms = 10.
@@ -118,9 +276,16 @@ contains
       ap0k = 1./p0**akap
       algpk = log(ap0k)
 
+
       do k=1,npz
          pref(k) = ak(k) + bk(k)*1.E5
       enddo
+
+!epg: w/ the Polvani-Kushner stratosphere, the temperature of the 
+!     stratosphere is set to t_tropopause
+      if ( pk_stratosphere .and. (.not. polar_vortex_only) ) then
+         t0=t_tropopause
+      endif
 
 ! Setup...
       if ( rayf .and. (.not. rf_initialized) ) then
@@ -157,49 +322,93 @@ contains
          endif
         
 ! Temperature forcing...
-        do k=npz,1,-1
-           do j=js,je
-              do i=is,ie
-                 tey = ap0k*( 315.0 - ty*SIN(agrid(i,j,2))*SIN(agrid(i,j,2)) )
-                 tez = tz*( ap0k/akap )*COS(agrid(i,j,2))*COS(agrid(i,j,2)) 
+         do k=npz,1,-1
+            do j=js,je
+               do i=is,ie
+                  !epg: we'll add the "eps" asymmetry factor
+                  !tey = ap0k*( 315.0 - ty*SIN(agrid(i,j,2))*SIN(agrid(i,j,2)) )
+                  tey = ap0k*( 315.0 - ty*SIN(agrid(i,j,2))*SIN(agrid(i,j,2)) &
+                       - eps*SIN(agrid(i,j,2)) )
+                  tez = tz*( ap0k/akap )*COS(agrid(i,j,2))*COS(agrid(i,j,2))
 
-                 if (strat .and. pl(i,j,k) < 10000.    &
-                           .and. pl(i,j,k) > 100.  )  then
-                   dz = h0 * log(pl(i,j,k+1)/pl(i,j,k))
+                  if (pk_stratosphere .and. pl(i,j,k) < p_tropopause ) then
+! epg: the Polvani-Kushner temperature profile
+                     lat_weight = 0.5 * ( 1. + &
+                       tanh((agrid(i,j,2)*rad_to_deg-vortex_edge)/vortex_edge_width) )
+
+                     if (polar_vortex_only) then
+                        ! with this option, the stratosphere is isothermal except for 
+                        ! the polar vortex
+                        t_satm=t0
+                     else
+                        ! construct the US standard atmosphere temperature 
+                        do l = 1, satm_levs
+                           if ( pl(i,j,k) > satm_p(l+1)) then
+                              t_satm = satm_t(l) * &
+                                   (pl(i,j,k)/satm_p(l))**(-rdgas*satm_g(l)/grav)
+                              !if (i == 1 .and. j == 1 .and. master) then
+                              !   print *, k, t_satm
+                              !endif
+                              exit
+                           endif
+                        enddo
+                     endif
+                     ! compute vortex temp
+                     t_vortex = t_tropopause * &
+                          (pl(i,j,k)/p_tropopause)**(-rdgas*vortex_gamma/grav)
+                     ! t_equilibrium is a weighted average of the US standard
+                     ! atmosphere or the cold polar vortex
+                     teq(i,j,k) = (1-lat_weight) * t_satm + lat_weight * &
+                          t_vortex
+                     ! lastly, computed the temperature tendency (implicit scheme)
+                     t_dt(i,j,k) = rka*(teq(i,j,k)-pt(i,j,k))/(1.+rka) * rdt
+ ! epg: end Polvani-Kushner temperature profile                    
+
+                  elseif (strat .and. pl(i,j,k) < 10000.    &
+                       .and. pl(i,j,k) > 100.  )  then
+                     dz = h0 * log(pl(i,j,k+1)/pl(i,j,k))
 !
 ! Lapse rate above tropic stratopause is 2.25 deg/km
 ! Relaxation time is t_st days at 100 mb (as H-S) and gradually
 ! decreases to t_ms Days at and above the stratopause
 !
-                   relx =  t_ms + tau*log(0.01*pl(i,j,k))
-                   relx = pdt/(relx*sday)
-                   dt_tropic = 2.25*COS(agrid(i,j,2)) * dz
-                   teq(i,j,k)  =  teq(i,j,k+1) + dt_tropic
-                   t_dt(i,j,k) = relx*(teq(i,j,k)-pt(i,j,k))/(1.+relx) * rdt
-                 elseif (strat .and. pl(i,j,k) <= 100.)  then
+                     relx =  t_ms + tau*log(0.01*pl(i,j,k))
+                     relx = pdt/(relx*sday)
+                     dt_tropic = 2.25*COS(agrid(i,j,2)) * dz
+                     teq(i,j,k)  =  teq(i,j,k+1) + dt_tropic
+                     t_dt(i,j,k) = relx*(teq(i,j,k)-pt(i,j,k))/(1.+relx) * rdt
+                  elseif (strat .and. pl(i,j,k) <= 100.)  then
 !
 ! Mesosphere: defined as the region above 1 mb
 !
-                   dz = h0 * log(pl(i,j,k+1)/pl(i,j,k))
-                   dt_tropic = -2.25*COS(agrid(i,j,2)) * dz
-                   teq(i,j,k) = teq(i,j,k+1) + dt_tropic
-                   t_dt(i,j,k) = ((pt(i,j,k)+rms*teq(i,j,k))*rmr - pt(i,j,k))*rdt
-                 else
+                     dz = h0 * log(pl(i,j,k+1)/pl(i,j,k))
+                     dt_tropic = -2.25*COS(agrid(i,j,2)) * dz
+                     teq(i,j,k) = teq(i,j,k+1) + dt_tropic
+                     t_dt(i,j,k) = ((pt(i,j,k)+rms*teq(i,j,k))*rmr - pt(i,j,k))*rdt
+                  else
 
 ! Trop:  strictly Held-Suarez
 
-                   sigl = pl(i,j,k)/pe(i,npz+1,j)
-                   f1 = max(0., (sigl-sigb) * rsgb )
-                   teq(i,j,k) = tey - tez*(log(pkz(i,j,k))+algpk)
-                   teq(i,j,k) = max(t0, teq(i,j,k)*pkz(i,j,k))
-                   rkt = rka + (rks-rka)*f1*(COS(agrid(i,j,2))**4.0)
-                   t_dt(i,j,k) = rkt*(teq(i,j,k)-pt(i,j,k))/(1.+rkt) * rdt
-                 endif
-              enddo     !i-loop
-           enddo     !j-loop
-        enddo     !k-loop
+                     sigl = pl(i,j,k)/pe(i,npz+1,j)
+                     f1 = max(0., (sigl-sigb) * rsgb )
+                     teq(i,j,k) = tey - tez*(log(pkz(i,j,k))+algpk)
+                     teq(i,j,k) = max(t0, teq(i,j,k)*pkz(i,j,k))
+                     rkt = rka + (rks-rka)*f1*(COS(agrid(i,j,2))**4.0)
+                     t_dt(i,j,k) = rkt*(teq(i,j,k)-pt(i,j,k))/(1.+rkt) * rdt
+                  endif
 
-        if ( .not. hydrostatic ) then
+                  !epg: this allows you to prescribe a CO2-like warming as in Wang et al 2011.
+                  if (do_ghg_heating) then ! co2 warming
+                     t_dt(i,j,k) = t_dt(i,j,k) + ghg_heating_amplitude &
+                          *exp( -0.5*((agrid(i,j,2)-ghg_ypos)/ghg_ywid)**2 &
+                          -0.5*((pl(i,j,k)/pe(i,npz+1,j)-ghg_zpos)/ghg_zwid)**2)
+                  endif
+
+               enddo     !i-loop
+            enddo     !j-loop
+         enddo     !k-loop
+
+         if ( .not. hydrostatic ) then
 !------------------------------------------------------------------------
 ! The nonhydrostatic pressure changes if there is heating (under constant
 ! volume and mass is locally conserved).
