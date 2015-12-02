@@ -19,6 +19,11 @@ module hswf_mod
       private
       public :: Held_Suarez_Strat, Held_Suarez_Tend, Sim_phys, age_of_air
 
+!epg: namelist parameters for tracers
+      logical :: do_age_of_air = .false.   ! compute the age of air
+      logical :: do_delta_tracer = .false. ! compute the age of air spectrum
+      logical :: do_pulse_tracer = .false. ! a pulse of tracer, to test conservation
+      real :: p_source = 70000.0     ! source/sinks of tracers are below this level
 
 contains
 
@@ -235,6 +240,102 @@ contains
         endif
 
 2000  continue
+
+!epg: tracers - age of air
+        if ( do_age_of_air ) then
+           ! make the tracer starts out at zero!
+           if( time_total <= 3600 ) then
+              do k=1,npz
+                 do j=js,je
+                    do i=is,ie
+                       q(i,j,k,1) = 0.0
+                    enddo
+                 enddo
+              enddo
+           else
+              do k=1,npz
+                 do j=js,je
+                    do i=is,ie
+                       if( pe(i,k,j) >= p_source ) then
+                          q(i,j,k,1) = time_total/86400.0
+                       endif
+                    enddo
+                 enddo
+              enddo
+           endif
+
+        endif
+
+!epg: tracers - age spectrum
+        if ( do_delta_tracer ) then
+
+           if ( time_total/86400.0 > 330.0 ) then
+              !remove any tracer below the source level
+              do k=1,npz
+                 do j=js,je
+                    do i=is,ie
+                       if( pe(i,k,j) >= p_source ) then
+                          q(i,j,k,2) = 0.0
+                       endif
+                    enddo
+                 enddo
+              enddo
+
+           elseif ( time_total/86400.0 > 300.0 ) then
+              ! initialize the tracer
+              do k=1,npz
+                 do j=js,je
+                    do i=is,ie
+                       if( pe(i,k,j) >= p_source ) then
+                          q(i,j,k,2) = 1.0
+                       endif
+                    enddo
+                 enddo
+              enddo
+           else
+              ! ensure that the tracer is initialy zero
+              do k=1,npz
+                 do j=js,je
+                    do i=is,ie
+                       q(i,j,k,2) = 0.0
+                    enddo
+                 enddo
+              enddo
+           endif
+
+        endif
+
+!epg: tracers - pulse tracer
+        if ( do_pulse_tracer ) then
+
+           if ( time_total/86400.0 > 330.0 ) then
+              ! do nothing in this case
+
+           elseif ( time_total/86400.0 > 300.0 ) then
+              !initialize the pulse
+              do k=1,npz
+                 do j=js,je
+                    do i=is,ie
+                       if( pe(i,k,j) >= p_source ) then
+                          q(i,j,k,3) = 1.0
+                       endif
+                    enddo
+                 enddo
+              enddo
+
+           else
+              !the tracer should start at zero
+              do k=1,npz
+                 do j=js,je
+                    do i=is,ie
+                       q(i,j,k,3) = 0.0
+                    enddo
+                 enddo
+              enddo
+           endif
+        endif
+
+
 
 #ifdef DO_AGE
       if( nq/=0 )     &
@@ -756,7 +857,7 @@ contains
 
  end subroutine Sim_phys
 
-      subroutine age_of_air(is, ie, js, je, km, ng, time, pe, q)
+ subroutine age_of_air(is, ie, js, je, km, ng, time, pe, q)
 
       integer is, ie, js, je
       integer km
