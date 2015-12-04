@@ -1,13 +1,16 @@
 # template for the Intel fortran compiler version 8
 # typical use with mkmf
 # mkmf -t template.ifc -c"-Duse_libMPI -Duse_netCDF" path_names /usr/local/include
+FFLAGS = -stack_temps -safe_cray_ptr -ftz -i_dynamic -assume byterecl -O2 -i4 -r8 -w95 -g -I/share/apps/netcdf/3.6.3/intel/include -I/usr/mpi/intel/mvapich-1.1.0/include
 
-FFLAGS = -stack_temps -safe_cray_ptr -ftz -i_dynamic -assume byterecl -O2 -i4 -r8 -I$(NETCDF_INC) -fPIC -unroll -ip -axavx -xsse4.2 -vec-report -par-report -openmp-report
+CPPFLAGS =  -I/usr/include -I/usr/local/include -I/share/apps/netcdf/3.6.3/intel/include -I/usr/mpi/intel/mvapich-1.1.0/include
 
-#-I/share/apps/hdf5/1.8.4/intel/serial/include -I/share/apps/netcdf/4.1.1/intel/serial/netcdf/include -xP -ip -fPIC
+FC = mpif90 -I/share/apps/netcdf/3.6.3/intel/include
+LD = mpif90
 
-CPPFLAGS =  -I$(NETCDF_INC)
+LDFLAGS = -L/usr/local/lib -L/share/apps/netcdf/3.6.3/intel/lib -L/usr/mpi/intel/mvapich-1.1.0/lib -lpthread -lnetcdf -lfmpich -lmpich
 
+#CFLAGS = -D__IFC
 #-I/usr/include -I/usr/local/include -I/share/apps/hdf5/1.8.4/intel/serial/include -I/share/apps/netcdf/4.1.1/intel/serial/netcdf/include
 
 FC = mpif90 $(FFLAGS)
@@ -15,7 +18,7 @@ FC = mpif90 $(FFLAGS)
 
 LD = mpif90 $(FFLAGS) -shared-intel
 
-LDFLAGS = -L$(NETCDF_LIB) -lnetcdff 
+LDFLAGS = -L$(NETCDF_LIB) -lnetcdff
 
 CFLAGS = -D__IFC -I$(MPI_INC) -O3 -fPIC -unroll -ip -axavx -xsse4.2 -vec-report -par-report -openmp-report -Wno-deprecated
 
