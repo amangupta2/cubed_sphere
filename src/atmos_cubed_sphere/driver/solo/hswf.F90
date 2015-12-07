@@ -53,6 +53,15 @@ module hswf_mod
       real :: vortex_edge_width = 10.0  ! polar vortex edge width
       real :: vortex_gamma = -2.e-3     ! polar vortex lapse rate (in K/m)
 
+      !epg: DO NOT USE THIS STRATOSPHERIC DAMPING
+      !     it causes the model to be unstable.  Rather, please use the built in
+      !     Rayleigh damping, which can be activated by setting tau to a non-zero value
+      !     in the fv_core_nml namelist!!!
+      logical :: stratospheric_damping = .false. ! Rayleight friction in stratosphere
+      real :: strat_damping_pbottom = 50.0    ! bottom of stratospheric sponge layer,
+                                              ! where damping is zero (Pa)
+      real :: tau_strat  = 0.5   !damping time scale for the sponge (days)
+
 !epg: namelist parameters for tracers
       logical :: do_age_of_air = .false.   ! compute the age of air
       logical :: do_delta_tracer = .false. ! compute the age of air spectrum
@@ -444,7 +453,17 @@ contains
                      u_dt(i,j,k) = -ua(i,j,k)*frac(i,j)/(1.+frac(i,j)) * rdt
                      v_dt(i,j,k) = -va(i,j,k)*frac(i,j)/(1.+frac(i,j)) * rdt
                  endif
-               enddo
+! epg: optional stratospheric damping layer (for Polvani-Kushner stratosphere)
+                 if (stratospheric_damping) then
+                    pres=0.5*(pe(i,k,j)+pe(i,k+1,j))
+                    if (pres < strat_damping_pbottom) then
+                       rayd = rk_strat* &
+                            (strat_damping_pbottom-pres)**2/ &
+                            (strat_damping_pbottom)**2
+                       u_dt(i,j,k) = -ua(i,j,k)*rayd/(1.+rayd) * rdt
+                    endif
+                 endif
+              enddo
            enddo
         endif
 
