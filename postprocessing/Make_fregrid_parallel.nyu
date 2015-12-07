@@ -1,0 +1,57 @@
+# epg: I've attempted to modify the paths for the nyu hpc
+#NETCDFPATH = /share/apps/netcdf/4.1.1/intel/serial/netcdf
+
+CFLAGS = -O3 -I${PPDIR} -I$(NETCDF_INC) -I$(MPI_INC) 
+CFLAGS_O2 = -O2 -I${PPDIR} -I$(NETCDF_INC) -I$(MPI_INC)
+LDFLAGS =  -L$(NETCDF_LIB) -lm -lnetcdf #-lmpi -lz #-lm -lnetcdf (-lhdf5_hl -lhdf5 -lmpi) -lz
+DEFFLAG = -Duse_netCDF -Duse_libMPI
+LNFLAGS = -v
+CC      = mpicc
+
+OBJS = mosaic_util.o gradient_c2l.o create_xgrid.o interp.o read_mosaic.o mpp.o mpp_domain.o mpp_io.o tool_util.o \
+       conserve_interp.o bilinear_interp.o fregrid_util.o fregrid.o
+
+HEADERS = ${PPDIR}/mpp.h  ${PPDIR}/mpp_domain.h ${PPDIR}/mpp_io.h ${PPDIR}/mosaic_util.h ${PPDIR}/interp.h ${PPDIR}/create_xgrid.h
+fregrid_parallel: $(OBJS)
+	$(CC) $(LNFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+
+fregrid.o: ${PPDIR}/fregrid.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/fregrid.c 
+
+fregrid_util.o: ${PPDIR}/fregrid_util.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/fregrid_util.c 
+
+conserve_interp.o: ${PPDIR}/conserve_interp.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/conserve_interp.c
+
+bilinear_interp.o: ${PPDIR}/bilinear_interp.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/bilinear_interp.c
+
+mosaic_util.o: ${PPDIR}/mosaic_util.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/mosaic_util.c
+
+gradient_c2l.o: ${PPDIR}/gradient_c2l.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/gradient_c2l.c
+
+create_xgrid.o: ${PPDIR}/create_xgrid.c $(HEADERS)
+	$(CC) $(CFLAGS_O2) -c ${PPDIR}/create_xgrid.c 
+
+interp.o: ${PPDIR}/interp.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/interp.c 
+
+read_mosaic.o: ${PPDIR}/read_mosaic.c $(HEADERS)
+	$(CC) $(DEFFLAG) $(CFLAGS) -c ${PPDIR}/read_mosaic.c 
+
+mpp.o: ${PPDIR}/mpp.c $(HEADERS)
+	$(CC) $(DEFFLAG) $(CFLAGS) -c ${PPDIR}/mpp.c 
+
+mpp_domain.o: ${PPDIR}/mpp_domain.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/mpp_domain.c 
+
+mpp_io.o: ${PPDIR}/mpp_io.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/mpp_io.c
+
+tool_util.o: ${PPDIR}/tool_util.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ${PPDIR}/tool_util.c
+
+

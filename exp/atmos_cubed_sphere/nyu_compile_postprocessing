@@ -1,0 +1,48 @@
+#!/bin/csh -f
+
+#Minimal compile script for mppnccombine and fregrid_parallel
+
+module purge
+module load netcdf/intel/4.3.1.1
+module load mvapich2/intel/2.0rc1
+
+limit stacksize unlimited
+
+set echo 
+
+#--------------------------------------------------------------------------------------------------------
+# define variables
+set platform  = nyu                                    # A unique identifier for your platform
+set npes      = 6                                       # number of processors
+set template  = $cwd/../../bin/mkmf.template.$platform   # path to template for your platform
+set mkmf      = $cwd/../../bin/mkmf                      # path to executable mkmf
+set sourcedir = $cwd/../../src                           # path to directory containing model source code
+set mppnccombine = $cwd/../../bin/mppnccombine.$platform # path to executable mppnccombine
+setenv PPDIR  $cwd/../../postprocessing     # path to directory containing postprocessing source code and grid data for fregrid_parallel
+set
+#--------------------------------------------------------------------------------------------------------
+set execdir = $cwd/exec.$platform       # where code is compiled and executable is created
+set fregrid_dir = $PPDIR/fregrid_parallel.$platform
+set pathnames = $cwd/path_names           # path to file containing list of source paths
+set namelist  = $cwd/namelists            # path to namelist file
+set diagtable = $cwd/diag_table           # path to diagnositics table
+set fieldtable = $cwd/field_table         # path to field table (specifies tracers)
+#mvapich2/intel/2.0rc1#--------------------------------------------------------------------------------------------------------
+
+# compile mppnccombine.c, will be used only if $npes > 1
+if ( ! -f $mppnccombine ) then
+#  gcc -O -o $mppnccombine -I/usr/local/netcdf-4.0.1/include -L/usr/local/lib $PPDIR/mppnccombine.c -lnetcdf
+  #icc -O -o $mppnccombine -I/share/apps/hdf5/1.8.12/intel/serial/include -I/share/apps/netcdf/4.1.1/intel/serial/netcdf/include -L/share/apps/hdf5/1.8.12/intel/serial/lib -L/share/apps/netcdf/4.1.1/intel/serial/netcdf/lib $cwd/../../postprocessing/mppnccombine.c -lhdf5 -lhdf5_hl -lnetcdf
+  icc -O3 -fPIC -unroll -ip -axavx -xsse4.2 -openmp -vec-report -par-report -openmp-report -Wno-deprecated -o $mppnccombine -I$NETCDF_INC -L$NETCDF_LIB -lnetcdf $cwd/../../postprocessing/mppnccombine.c
+
+endif
+
+
+#--------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------
+if ( ! -d $fregrid_dir ) mkdir $fregrid_dir
+cd $fregrid_dir
+gmake -j 6 -f $PPDIR/Make_fregrid_parallel.$platform
+if ( $status != 0 ) exit
+
+#--------------------------------------------------------------------------------------------------------
